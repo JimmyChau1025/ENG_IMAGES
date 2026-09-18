@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小紫的生字旅程</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body { font-family: 'Nunito', 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        #flashcard { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
+        
+        /* 隱藏捲軸但可捲動 */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 脈衝發光動畫 (聽力模式用) */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px 5px rgba(236, 72, 153, 0.4); }
+            50% { box-shadow: 0 0 25px 10px rgba(168, 85, 247, 0.6); transform: scale(1.05); }
+        }
+        .animate-pulse-glow { animation: pulse-glow 2s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen w-screen overflow-hidden flex flex-col antialiased selection:bg-pink-200">
+
+    <!-- 資源下載進度條 (首頁頂部) -->
+    <div id="installProgress" class="hidden absolute top-0 left-0 w-full bg-pink-100 text-pink-600 text-xs text-center py-1 font-bold z-50 shadow-sm">
+        正在將圖庫安裝至本機... <span id="installPercentage">0%</span>
+    </div>
+
+    <!-- 首頁畫面 -->
+    <div id="homeScreen" class="absolute inset-0 z-40 bg-center bg-no-repeat flex flex-col items-center justify-end pb-12 sm:pb-24 transition-opacity duration-500">
+        <!-- 挑戰選擇面板 -->
+        <div class="bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-2xl w-[90%] max-w-sm border border-white/50 space-y-4 transform transition-transform hover:scale-[1.02]">
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-2 flex items-center justify-center gap-2">
+                <svg class="w-6 h-6 text-pink-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                選擇今日挑戰
+            </h2>
+            <button onclick="startSession(30)" class="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-2xl shadow-md transition-all active:scale-95 text-lg">
+                小菜一碟 (30詞)
+            </button>
+            <button onclick="startSession(60)" class="w-full py-4 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white font-bold rounded-2xl shadow-md transition-all active:scale-95 text-lg">
+                大戰一百回合 (60詞)
+            </button>
+            <button onclick="startSession(100)" class="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold rounded-2xl shadow-md transition-all active:scale-95 text-lg">
+                準備掉手掣 (100詞)
+            </button>
+        </div>
+        
+        <!-- 遊玩紀錄按鈕 -->
+        <button onclick="showHistory()" class="mt-6 bg-white/80 backdrop-blur-sm p-3 rounded-full shadow-lg text-gray-600 hover:text-pink-500 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+    </div>
+
+    <!-- 學習主畫面 -->
+    <div id="appScreen" class="hidden flex-1 flex-col h-full w-full max-w-5xl mx-auto p-4 sm:p-6 pb-safe">
+        
+        <!-- 一體化頂部資訊欄 -->
+        <div class="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center justify-between mb-4 sm:mb-6">
+            <!-- 進度條區塊 -->
+            <div class="flex-1 mr-4">
+                <div class="flex justify-between text-xs sm:text-sm font-bold text-gray-500 mb-2">
+                    <span id="progressText" class="tracking-wider">0 / 30</span>
+                </div>
+                <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-pink-400 to-purple-500 transition-all duration-300 ease-out w-0"></div>
+                </div>
+            </div>
+            
+            <!-- 統計數字 (移除 Again，保留 Hard, Good, Easy) -->
+            <div class="flex gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold">
+                <div class="px-2.5 py-1 rounded-lg bg-orange-50 text-orange-500 border border-orange-100 min-w-[2rem] text-center" id="countHard">0</div>
+                <div class="px-2.5 py-1 rounded-lg bg-green-50 text-green-500 border border-green-100 min-w-[2rem] text-center" id="countGood">0</div>
+                <div class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-500 border border-blue-100 min-w-[2rem] text-center" id="countEasy">0</div>
+            </div>
+
+            <!-- 操作按鈕 -->
+            <div class="flex gap-2 ml-4 border-l pl-4 border-gray-200">
+                <button onclick="undo()" class="p-2 text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                </button>
+                <button onclick="returnToHome()" class="p-2 text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 rounded-xl transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3D 翻轉卡片容器 -->
+        <div class="flex-1 relative w-full perspective-1000 min-h-0 flex items-stretch cursor-pointer group" onclick="flipCard()">
+            <div id="flashcard" class="relative w-full h-full transform-style-3d shadow-xl rounded-[2rem] sm:rounded-[3rem] transition-all duration-500 group-hover:shadow-2xl">
+                
+                <!-- 卡片正面 (完美貼齊邊緣，無模糊遮罩，提示字置底) -->
+                <div id="cardFrontContainer" class="absolute w-full h-full backface-hidden rounded-[2rem] sm:rounded-[3rem] border-2 border-white/50 overflow-hidden flex flex-col justify-center items-center bg-white">
+                    <!-- 動態內容將由 JS 注入 -->
+                </div>
+
+                <!-- 卡片背面 (夢幻漸層、圓角標籤) -->
+                <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-pink-50 via-white to-purple-50 rounded-[2rem] sm:rounded-[3rem] border border-pink-100 overflow-hidden flex flex-col shadow-inner">
+                    <div class="flex-1 overflow-y-auto hide-scrollbar p-6 sm:p-10 flex flex-col justify-center relative">
+                        <div id="cardBackContent" class="w-full max-w-2xl mx-auto space-y-6 sm:space-y-8">
+                            <!-- JS 注入答案 -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 底部操作列 (初始狀態：按下 Space 顯示答案) -->
+        <div id="actionArea" class="mt-4 sm:mt-6 h-16 sm:h-20 flex items-center justify-center relative shrink-0">
+            <div id="hintText" class="text-gray-400 font-medium tracking-widest text-sm sm:text-base animate-pulse">
+                按下 <kbd class="px-2 py-1 bg-gray-100 border border-gray-200 rounded-md text-gray-600 font-mono text-xs shadow-sm">Space</kbd> 顯示答案
+            </div>
+            
+            <!-- 評分按鈕 (明快 3 鍵模式) -->
+            <div id="ratingButtons" class="hidden absolute inset-0 flex items-center justify-center gap-2 sm:gap-4 w-full">
+                <button onclick="rateCard('hard', event)" class="flex-1 max-w-[120px] h-full bg-gradient-to-b from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white rounded-2xl font-bold text-lg sm:text-xl shadow-lg shadow-orange-500/30 transform active:scale-95 transition-all flex flex-col items-center justify-center gap-1 border border-orange-400/50">
+                    <span>Hard</span>
+                    <span class="text-xs font-normal text-orange-100 opacity-80 hidden sm:block">重排 (1)</span>
+                </button>
+                <button onclick="rateCard('good', event)" class="flex-1 max-w-[120px] h-full bg-gradient-to-b from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white rounded-2xl font-bold text-lg sm:text-xl shadow-lg shadow-green-500/30 transform active:scale-95 transition-all flex flex-col items-center justify-center gap-1 border border-green-400/50">
+                    <span>Good</span>
+                    <span class="text-xs font-normal text-green-100 opacity-80 hidden sm:block">學會 (2)</span>
+                </button>
+                <button onclick="rateCard('easy', event)" class="flex-1 max-w-[120px] h-full bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white rounded-2xl font-bold text-lg sm:text-xl shadow-lg shadow-blue-500/30 transform active:scale-95 transition-all flex flex-col items-center justify-center gap-1 border border-blue-400/50">
+                    <span>Easy</span>
+                    <span class="text-xs font-normal text-blue-100 opacity-80 hidden sm:block">簡單 (3)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 結算彈跳視窗 -->
+    <div id="completionModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="modalContent">
+            <!-- 結算圖片將會顯示在這裡 -->
+            <div id="endgameImageContainer" class="w-full h-64 sm:h-80 bg-gray-100 relative overflow-hidden flex items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+            </div>
+            
+            <div class="p-8 text-center space-y-6">
+                <h3 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500">
+                    挑戰完成！
+                </h3>
+                <p class="text-gray-500 text-lg">你今天又變得更厲害了！</p>
+                <div class="flex justify-center gap-4">
+                    <div class="bg-orange-50 px-4 py-2 rounded-xl border border-orange-100">
+                        <div class="text-sm text-orange-600 font-bold">Hard</div>
+                        <div class="text-xl font-black text-orange-700" id="finalHard">0</div>
+                    </div>
+                    <div class="bg-green-50 px-4 py-2 rounded-xl border border-green-100">
+                        <div class="text-sm text-green-600 font-bold">Good</div>
+                        <div class="text-xl font-black text-green-700" id="finalGood">0</div>
+                    </div>
+                    <div class="bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                        <div class="text-sm text-blue-600 font-bold">Easy</div>
+                        <div class="text-xl font-black text-blue-700" id="finalEasy">0</div>
+                    </div>
+                </div>
+                <button onclick="returnToHome()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold rounded-2xl shadow-lg transform active:scale-95 transition-all text-lg mt-4">
+                    返回首頁
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 歷史紀錄視窗 -->
+    <div id="historyModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    遊玩紀錄
+                </h3>
+                <button onclick="closeHistory()" class="text-gray-400 hover:text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-full p-2 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="historyList" class="p-6 overflow-y-auto flex-1 space-y-3 bg-white">
+                <!-- 紀錄注入區 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 核心資料庫 (40 個單字，包含詞性變化與搭配詞)
+        // ==========================================
+        const vocabularyData = [
+            { en: "Conscious", zh: "意識到的；有知覺的", en_sentence: "He was conscious of his mistake.", zh_sentence: "他意識到了自己的錯誤。", derivatives: "consciousness (n.)", collocations: "be conscious of" },
+            { en: "Essential", zh: "必要的；必不可少的", en_sentence: "Water is essential for living things.", zh_sentence: "水對生物來說是不可或缺的。", derivatives: "essentially (adv.)", collocations: "essential to / for" },
+            { en: "Maintain", zh: "維持；保養", en_sentence: "It is important to maintain a healthy weight.", zh_sentence: "保持健康的體重很重要。", derivatives: "maintenance (n.)", collocations: "maintain a balance" },
+            { en: "Annual", zh: "年度的；每年的", en_sentence: "The company holds an annual meeting in March.", zh_sentence: "公司在三月舉行年會。", derivatives: "annually (adv.)", collocations: "annual report" },
+            { en: "Benefit", zh: "益處；優勢", en_sentence: "The new policy will benefit all employees.", zh_sentence: "新政策將使所有員工受惠。", derivatives: "beneficial (adj.)", collocations: "benefit from" },
+            { en: "Concept", zh: "概念；觀念", en_sentence: "The concept of infinity is hard to grasp.", zh_sentence: "無限的概念很難理解。", derivatives: "conceptual (adj.)", collocations: "basic concept" },
+            { en: "Define", zh: "定義；界定", en_sentence: "How would you define success?", zh_sentence: "你會如何定義成功？", derivatives: "definition (n.)", collocations: "define as" },
+            { en: "Estimate", zh: "估計；估算", en_sentence: "They estimate the cost to be around $1000.", zh_sentence: "他們估計費用大約是一千元。", derivatives: "estimation (n.)", collocations: "rough estimate" },
+            { en: "Factor", zh: "因素；要素", en_sentence: "Price is a major factor in their decision.", zh_sentence: "價格是他們決定的主要因素。", derivatives: "factory (n.)", collocations: "contributing factor" },
+            { en: "Generate", zh: "產生；引起", en_sentence: "The project generated a lot of interest.", zh_sentence: "這個專案引起了很大的興趣。", derivatives: "generation (n.)", collocations: "generate electricity" },
+            { en: "Identify", zh: "識別；認出", en_sentence: "Can you identify the man in the photo?", zh_sentence: "你能認出照片中的男人嗎？", derivatives: "identity (n.)", collocations: "identify with" },
+            { en: "Legal", zh: "合法的；法律的", en_sentence: "You need legal advice before signing.", zh_sentence: "你在簽署前需要法律建議。", derivatives: "legally (adv.)", collocations: "legal action" },
+            { en: "Method", zh: "方法；方式", en_sentence: "This is a new method of teaching English.", zh_sentence: "這是一種新的英語教學方法。", derivatives: "methodology (n.)", collocations: "effective method" },
+            { en: "Occur", zh: "發生；出現", en_sentence: "The accident occurred at 5 PM.", zh_sentence: "意外發生在下午五點。", derivatives: "occurrence (n.)", collocations: "occur to someone" },
+            { en: "Policy", zh: "政策；方針", en_sentence: "The school has a strict no-smoking policy.", zh_sentence: "學校有嚴格的禁菸政策。", derivatives: "policymaker (n.)", collocations: "foreign policy" },
+            { en: "Require", zh: "需要；要求", en_sentence: "This job requires a lot of patience.", zh_sentence: "這份工作需要很大的耐心。", derivatives: "requirement (n.)", collocations: "require someone to do" },
+            { en: "Significant", zh: "重大的；顯著的", en_sentence: "There is a significant difference between them.", zh_sentence: "他們之間有顯著的差異。", derivatives: "significance (n.)", collocations: "significant impact" },
+            { en: "Theory", zh: "理論；學說", en_sentence: "Einstein developed the theory of relativity.", zh_sentence: "愛因斯坦發展了相對論。", derivatives: "theoretical (adj.)", collocations: "in theory" },
+            { en: "Vary", zh: "變化；不同", en_sentence: "Prices vary depending on the season.", zh_sentence: "價格因季節而異。", derivatives: "variety (n.), various (adj.)", collocations: "vary from... to..." },
+            { en: "Assume", zh: "假設；認為", en_sentence: "I assume you have read the report.", zh_sentence: "我假設你已經讀過報告了。", derivatives: "assumption (n.)", collocations: "assume responsibility" },
+            { en: "Available", zh: "可獲得的；有空的", en_sentence: "Are there any tickets available for tonight?", zh_sentence: "今晚還有票嗎？", derivatives: "availability (n.)", collocations: "readily available" },
+            { en: "Context", zh: "上下文；背景", en_sentence: "You have to understand the word in its context.", zh_sentence: "你必須在上下文中理解這個字。", derivatives: "contextual (adj.)", collocations: "out of context" },
+            { en: "Create", zh: "創造；建立", en_sentence: "He created a new software program.", zh_sentence: "他建立了一個新的軟體程式。", derivatives: "creation (n.), creative (adj.)", collocations: "create an opportunity" },
+            { en: "Data", zh: "數據；資料", en_sentence: "We need more data to support this claim.", zh_sentence: "我們需要更多數據來支持這個主張。", derivatives: "database (n.)", collocations: "collect data" },
+            { en: "Environment", zh: "環境", en_sentence: "We must protect the natural environment.", zh_sentence: "我們必須保護自然環境。", derivatives: "environmental (adj.)", collocations: "friendly environment" },
+            { en: "Finance", zh: "財務；金融", en_sentence: "He works in the world of high finance.", zh_sentence: "他在高階金融界工作。", derivatives: "financial (adj.)", collocations: "corporate finance" },
+            { en: "Income", zh: "收入；所得", en_sentence: "Her monthly income is quite high.", zh_sentence: "她的月收入相當高。", derivatives: "incoming (adj.)", collocations: "source of income" },
+            { en: "Involve", zh: "包含；牽涉", en_sentence: "The job involves a lot of traveling.", zh_sentence: "這份工作需要經常出差。", derivatives: "involvement (n.)", collocations: "get involved in" },
+            { en: "Major", zh: "主要的；重大的", en_sentence: "Pollution is a major problem in this city.", zh_sentence: "污染是這個城市的主要問題。", derivatives: "majority (n.)", collocations: "play a major role" },
+            { en: "Process", zh: "過程；步驟", en_sentence: "Learning a language is a slow process.", zh_sentence: "學習語言是一個緩慢的過程。", derivatives: "processed (adj.)", collocations: "in the process of" },
+            { en: "Research", zh: "研究；調查", en_sentence: "She is doing research on cancer.", zh_sentence: "她正在進行癌症研究。", derivatives: "researcher (n.)", collocations: "conduct research" },
+            { en: "Similar", zh: "相似的；類似的", en_sentence: "The two brothers look very similar.", zh_sentence: "這兩兄弟長得很像。", derivatives: "similarity (n.)", collocations: "similar to" },
+            { en: "Structure", zh: "結構；構造", en_sentence: "The building has a solid steel structure.", zh_sentence: "這棟建築有堅固的鋼鐵結構。", derivatives: "structural (adj.)", collocations: "complex structure" },
+            { en: "Analyze", zh: "分析", en_sentence: "We need to analyze the results carefully.", zh_sentence: "我們需要仔細分析結果。", derivatives: "analysis (n.)", collocations: "analyze data" },
+            { en: "Approach", zh: "方法；接近", en_sentence: "We need a new approach to this problem.", zh_sentence: "我們需要一個新方法來解決這個問題。", derivatives: "approachable (adj.)", collocations: "take an approach" },
+            { en: "Area", zh: "區域；領域", en_sentence: "This area is famous for its apples.", zh_sentence: "這個地區以蘋果聞名。", derivatives: "areal (adj.)", collocations: "rural area" },
+            { en: "Assess", zh: "評估；評定", en_sentence: "They assessed the damage caused by the storm.", zh_sentence: "他們評估了風暴造成的損失。", derivatives: "assessment (n.)", collocations: "assess the impact" },
+            { en: "Authority", zh: "權威；當局", en_sentence: "He has the authority to make the decision.", zh_sentence: "他有權力做決定。", derivatives: "authorize (v.)", collocations: "local authority" },
+            { en: "Economy", zh: "經濟", en_sentence: "The global economy is recovering slowly.", zh_sentence: "全球經濟正在緩慢復甦。", derivatives: "economic (adj.)", collocations: "market economy" },
+            { en: "Establish", zh: "建立；創立", en_sentence: "The company was established in 1990.", zh_sentence: "這家公司創立於1990年。", derivatives: "establishment (n.)", collocations: "establish a relationship" }
+        ];
+
+        // ==========================================
+        // 2. 圖片資源陣列 (GitHub 網址)
+        // ==========================================
+        const baseUrl = 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/';
+        
+        // 封面背景
+        const mobileBgUrls = [`${baseUrl}TITLE_MOBILE.jpeg`, `${baseUrl}TITLE_MOBILE.jpg`, `${baseUrl}TITLE_MOBILE.png`];
+        const desktopBgUrls = [`${baseUrl}TITLE.jpeg`, `${baseUrl}TITLE.jpg`, `${baseUrl}TITLE.png`];
+        
+        // 卡面背景 (直式 vs 橫式)
+        const frontBackgroundsMobile = [
+            `${baseUrl}bgm1.jpeg`, `${baseUrl}bgm2.jpeg`, `${baseUrl}bgm3.jpeg`, 
+            `${baseUrl}bgm4.jpeg`, `${baseUrl}bgm5.jpeg`, `${baseUrl}bgm6.jpeg`
+        ];
+        const frontBackgrounds = [
+            `${baseUrl}bg1.jpeg`, `${baseUrl}bg2.jpeg`, `${baseUrl}bg3.jpeg`, 
+            `${baseUrl}bg4.jpeg`, `${baseUrl}bg5.jpeg`, `${baseUrl}bg6.jpeg`
+        ];
+
+        // 結算圖片
+        const endgameImageUrls = [`${baseUrl}ENDGAME.jpeg`]; 
+
+        // ==========================================
+        // 3. 狀態變數與語音設定
+        // ==========================================
+        let sessionQueue = [];
+        let totalCards = 0;
+        let stats = { hard: 0, good: 0, easy: 0 };
+        let historyStack = [];
+        let isFlipped = false;
+        let currentCard = null;
+        let currentBgUrl = ''; 
+        let cachedImages = {}; // 儲存 IndexedDB 快取的 ObjectURL
+
+        const synth = window.speechSynthesis;
+        let englishVoice = null;
+        
+        synth.onvoiceschanged = () => {
+            const voices = synth.getVoices();
+            englishVoice = voices.find(v => v.lang === 'en-US' || v.lang === 'en-GB') || voices[0];
+        };
+
+        // ==========================================
+        // 4. IndexedDB 本機快取引擎 (零時差載入)
+        // ==========================================
+        const dbName = 'FlashcardResourcesDB';
+        const storeName = 'images';
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(storeName)) {
+                        db.createObjectStore(storeName);
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function cacheAssets() {
+            const progressDiv = document.getElementById('installProgress');
+            const progressSpan = document.getElementById('installPercentage');
+            progressDiv.classList.remove('hidden');
+
+            // 收集所有需要快取的圖片
+            const allImages = [...mobileBgUrls, ...desktopBgUrls, ...frontBackgroundsMobile, ...frontBackgrounds, ...endgameImageUrls];
+            let loaded = 0;
+
+            try {
+                const db = await initDB();
+                for (let url of allImages) {
+                    const tx = db.transaction(storeName, 'readonly');
+                    const store = tx.objectStore(storeName);
+                    const request = store.get(url);
+
+                    const blob = await new Promise((resolve) => {
+                        request.onsuccess = () => resolve(request.result);
+                        request.onerror = () => resolve(null);
+                    });
+
+                    if (blob) {
+                        cachedImages[url] = URL.createObjectURL(blob);
+                    } else {
+                        try {
+                            const response = await fetch(url);
+                            if (response.ok) {
+                                const newBlob = await response.blob();
+                                const writeTx = db.transaction(storeName, 'readwrite');
+                                writeTx.objectStore(storeName).put(newBlob, url);
+                                cachedImages[url] = URL.createObjectURL(newBlob);
+                            }
+                        } catch (e) {
+                            console.log("快取失敗, 將在需要時直接載入: ", url);
+                        }
+                    }
+                    loaded++;
+                    progressSpan.innerText = Math.round((loaded / allImages.length) * 100) + '%';
+                }
+            } catch (err) {
+                console.error("IndexedDB 初始化失敗", err);
+            }
+            
+            progressDiv.classList.add('hidden');
+            loadBackgroundImage();
+        }
+
+        // ==========================================
+        // 5. 核心 UI 與邏輯函數
+        // ==========================================
+        function speak(text) {
+            if (synth.speaking) synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (englishVoice) utterance.voice = englishVoice;
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+
+        function loadBackgroundImage() {
+            const homeScreen = document.getElementById('homeScreen');
+            const isMobile = window.innerWidth < 640;
+            const targetUrls = isMobile ? mobileBgUrls : desktopBgUrls;
+            
+            const firstUrl = targetUrls[0];
+            const bgToUse = cachedImages[firstUrl] || firstUrl;
+            
+            const img = new Image();
+            img.onload = () => { homeScreen.style.backgroundImage = `url('${bgToUse}')`; };
+            img.src = bgToUse;
+        }
+
+        window.addEventListener('resize', loadBackgroundImage);
+
+        function startSession(count) {
+            totalCards = count;
+            stats = { hard: 0, good: 0, easy: 0 };
+            historyStack = [];
+            
+            let shuffled = [...vocabularyData].sort(() => 0.5 - Math.random());
+            sessionQueue = shuffled.slice(0, count).map(word => ({ ...word, mode: Math.floor(Math.random() * 3) }));
+
+            document.getElementById('homeScreen').classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                document.getElementById('homeScreen').classList.add('hidden');
+                document.getElementById('appScreen').classList.remove('hidden');
+                document.getElementById('appScreen').classList.add('flex');
+                nextCard();
+            }, 500);
+        }
+
+        function updateProgress() {
+            const remaining = sessionQueue.length;
+            const completed = totalCards - remaining;
+            document.getElementById('progressText').innerText = `${completed} / ${totalCards}`;
+            document.getElementById('progressBar').style.width = `${(completed / totalCards) * 100}%`;
+            
+            document.getElementById('countHard').innerText = stats.hard;
+            document.getElementById('countGood').innerText = stats.good;
+            document.getElementById('countEasy').innerText = stats.easy;
+        }
+
+        function nextCard() {
+            if (sessionQueue.length === 0) {
+                showCompletion();
+                return;
+            }
+
+            isFlipped = false;
+            currentCard = sessionQueue[0];
+            const mode = currentCard.mode;
+            const currentWord = currentCard;
+
+            // 響應式：隨機決定卡面背景
+            const isMobile = window.innerWidth < 640;
+            const bgArray = isMobile ? frontBackgroundsMobile : frontBackgrounds;
+            const randomBgUrl = bgArray[Math.floor(Math.random() * bgArray.length)];
+            const finalBgUrl = cachedImages[randomBgUrl] || randomBgUrl;
+            
+            const cardFrontContainer = document.getElementById('cardFrontContainer');
+            cardFrontContainer.style.backgroundImage = `url('${finalBgUrl}')`;
+            cardFrontContainer.style.backgroundSize = '100% 100%';
+            cardFrontContainer.style.backgroundPosition = 'center';
+
+            let frontHTML = '';
+
+            if (mode === 0) {
+                frontHTML = `
+                    <div class="text-5xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600 tracking-tight drop-shadow-sm px-4 text-center">
+                        ${currentWord.en}
+                    </div>
+                `;
+            } else if (mode === 1) {
+                let blankWord = currentWord.en.replace(/[a-zA-Z]/g, '🌸');
+                frontHTML = `
+                    <div class="text-center w-full px-6">
+                        <div class="text-pink-500 font-bold mb-4 text-xl flex justify-center items-center gap-2 drop-shadow-sm">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                            填空施法
+                        </div>
+                        <div class="text-3xl sm:text-4xl font-bold text-pink-400 mb-6 tracking-[0.2em] break-all drop-shadow-md">
+                            ${blankWord}
+                        </div>
+                        <div class="text-lg sm:text-xl text-gray-700 bg-white/80 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-sm border border-pink-100 max-w-sm mx-auto font-medium">
+                            ${currentWord.zh}
+                        </div>
+                    </div>
+                `;
+            } else if (mode === 2) {
+                frontHTML = `
+                    <div class="flex flex-col items-center justify-center w-full">
+                        <div class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-fuchsia-400 to-purple-600 rounded-full flex items-center justify-center shadow-lg animate-pulse-glow cursor-pointer mb-6" onclick="speak('${currentWord.en}'); event.stopPropagation();">
+                            <svg class="w-12 h-12 sm:w-16 sm:h-16 text-white ml-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <div class="text-purple-500 font-bold tracking-widest text-sm sm:text-base drop-shadow-sm">點擊魔法球聽發音</div>
+                    </div>
+                `;
+            }
+
+            // 釘在底部的提示文字
+            frontHTML += `
+                <div class="absolute bottom-5 left-0 w-full flex justify-center">
+                    <div class="text-purple-500 font-bold text-xs sm:text-sm bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-purple-100 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                        點擊施展魔法翻牌 (或按 Space)
+                    </div>
+                </div>
+            `;
+
+            cardFrontContainer.innerHTML = frontHTML;
+            document.getElementById('flashcard').classList.remove('rotate-y-180');
+            
+            document.getElementById('hintText').classList.remove('hidden');
+            document.getElementById('ratingButtons').classList.add('hidden');
+            
+            updateProgress();
+
+            if (mode === 2) {
+                setTimeout(() => speak(currentWord.en), 300);
+            }
+        }
+
+        function renderCard(wordData, container) {
+            let pillsHtml = '';
+            if (wordData.derivatives) {
+                pillsHtml += `<div class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-xs font-bold border border-pink-200">詞性變化：${wordData.derivatives}</div>`;
+            }
+            if (wordData.collocations) {
+                pillsHtml += `<div class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-xs font-bold border border-purple-200">搭配詞：${wordData.collocations}</div>`;
+            }
+            const pillsSection = pillsHtml ? `<div class="flex flex-wrap gap-2 mt-2">${pillsHtml}</div>` : '';
+
+            container.innerHTML = `
+                <div class="flex flex-col h-full w-full justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex-1">
+                                <h2 class="text-4xl sm:text-5xl font-black text-purple-800 mb-2">${wordData.en}</h2>
+                                <div class="w-12 h-1.5 bg-pink-400 rounded-full mb-4"></div>
+                            </div>
+                            <button onclick="speak('${wordData.en}'); event.stopPropagation();" class="p-4 bg-gradient-to-br from-fuchsia-400 to-purple-500 hover:from-fuchsia-500 hover:to-purple-600 text-white rounded-full shadow-lg transform active:scale-90 transition-all border-2 border-white">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 11V9a2 2 0 012-2m-2 4v4a2 2 0 002 2h3.586a1 1 0 00.707-.293l5.414-5.414A1 1 0 0016 10V6a1 1 0 00-1.707-.707l-5.414 5.414A1 1 0 008 11H5z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="text-xl sm:text-2xl font-bold text-gray-700 mb-4 border-l-4 border-pink-300 pl-4 py-1">
+                            ${wordData.zh}
+                        </div>
+                        ${pillsSection}
+                    </div>
+                    
+                    <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white mt-6">
+                        <p class="text-purple-700 font-medium text-lg sm:text-xl mb-3 leading-relaxed">
+                            ${wordData.en_sentence}
+                        </p>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            ${wordData.zh_sentence}
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function flipCard() {
+            if (isFlipped || sessionQueue.length === 0) return;
+            
+            isFlipped = true;
+            const flashcard = document.getElementById('flashcard');
+            const cardBackContent = document.getElementById('cardBackContent');
+            
+            renderCard(currentCard, cardBackContent);
+            flashcard.classList.add('rotate-y-180');
+            speak(currentCard.en);
+            
+            document.getElementById('hintText').classList.add('hidden');
+            document.getElementById('ratingButtons').classList.remove('hidden');
+        }
+
+        function rateCard(rating, event) {
+            if (event) event.stopPropagation();
+            if (!isFlipped) return;
+
+            historyStack.push({
+                card: currentCard,
+                queueSnapshot: [...sessionQueue],
+                statsSnapshot: { ...stats }
+            });
+
+            const card = sessionQueue.shift();
+            stats[rating]++;
+
+            if (rating === 'hard') {
+                // Hard 模式：加回佇列中後段，確保一定會再考
+                const insertIndex = Math.min(Math.floor(sessionQueue.length / 2) + 2, sessionQueue.length);
+                sessionQueue.splice(insertIndex, 0, { ...card, mode: Math.floor(Math.random() * 3) });
+            } 
+            // Good 和 Easy 直接移出佇列，算作完成
+
+            nextCard();
+        }
+
+        function undo() {
+            if (historyStack.length === 0) return;
+            const lastState = historyStack.pop();
+            sessionQueue = lastState.queueSnapshot;
+            stats = lastState.statsSnapshot;
+            nextCard();
+        }
+
+        function showCompletion() {
+            document.getElementById('finalHard').innerText = stats.hard;
+            document.getElementById('finalGood').innerText = stats.good;
+            document.getElementById('finalEasy').innerText = stats.easy;
+            
+            const modal = document.getElementById('completionModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            // 載入結算圖
+            const endgameUrl = endgameImageUrls[0];
+            const finalEndgameUrl = cachedImages[endgameUrl] || endgameUrl;
+            
+            const imgContainer = document.getElementById('endgameImageContainer');
+            imgContainer.innerHTML = `<img src="${finalEndgameUrl}" class="w-full h-full object-cover" alt="完成">`;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            saveHistory();
+        }
+
+        function returnToHome() {
+            const modal = document.getElementById('completionModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('appScreen').classList.add('hidden');
+                document.getElementById('appScreen').classList.remove('flex');
+                
+                const homeScreen = document.getElementById('homeScreen');
+                homeScreen.classList.remove('hidden');
+                setTimeout(() => {
+                    homeScreen.classList.remove('opacity-0', 'pointer-events-none');
+                }, 10);
+            }, 300);
+        }
+
+        function saveHistory() {
+            const history = JSON.parse(localStorage.getItem('vocabularyHistory') || '[]');
+            history.unshift({
+                date: new Date().toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                total: totalCards,
+                hard: stats.hard,
+                good: stats.good,
+                easy: stats.easy
+            });
+            if (history.length > 50) history.pop();
+            localStorage.setItem('vocabularyHistory', JSON.stringify(history));
+        }
+
+        function showHistory() {
+            const history = JSON.parse(localStorage.getItem('vocabularyHistory') || '[]');
+            const list = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                list.innerHTML = `<div class="text-center text-gray-400 py-8">目前還沒有通關紀錄喔，趕快開始挑戰吧！</div>`;
+            } else {
+                list.innerHTML = history.map(record => `
+                    <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-sm font-bold text-gray-800 mb-1">${record.date}</div>
+                            <div class="text-xs text-pink-500 font-medium">通關 ${record.total} 詞</div>
+                        </div>
+                        <div class="flex gap-2 text-xs font-bold text-center">
+                            <div class="bg-orange-100 text-orange-600 px-2 py-1 rounded min-w-[2rem]">${record.hard}</div>
+                            <div class="bg-green-100 text-green-600 px-2 py-1 rounded min-w-[2rem]">${record.good}</div>
+                            <div class="bg-blue-100 text-blue-600 px-2 py-1 rounded min-w-[2rem]">${record.easy}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('historyModal').classList.remove('hidden');
+        }
+
+        function closeHistory() {
+            document.getElementById('historyModal').classList.add('hidden');
+        }
+
+        // 鍵盤操控綁定
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('appScreen').classList.contains('hidden')) return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isFlipped) flipCard();
+            } else if (isFlipped) {
+                if (e.key === '1') rateCard('hard');
+                if (e.key === '2') rateCard('good');
+                if (e.key === '3') rateCard('easy');
+            }
+        });
+
+        // 啟動時預載資源
+        window.addEventListener('DOMContentLoaded', cacheAssets);
+
+    </script>
+</body>
+</html>
