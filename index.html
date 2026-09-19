@@ -22,27 +22,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Phosphor Icons 圖示庫 -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-/* 卡底動態背景動畫 */
-        @keyframes floatShape {
-            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0; }
-            20% { opacity: 0.7; }
-            80% { opacity: 0.7; }
-            100% { transform: translateY(-400px) scale(1.5) rotate(360deg); opacity: 0; }
-        }
-        .floating-shape {
-            position: absolute;
-            bottom: -60px;
-            background: rgba(255, 255, 255, 0.6);
-            /* 圓角設為不規則形狀，看起來像可愛的變形泡泡或花瓣 */
-            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; 
-            animation: floatShape infinite linear;
-            pointer-events: none; /* 確保不會阻擋滑鼠點擊 */
-        }
-        .shape-1 { width: 60px; height: 60px; left: 10%; animation-duration: 8s; animation-delay: 0s; }
-        .shape-2 { width: 40px; height: 40px; left: 30%; animation-duration: 6s; animation-delay: 2s; }
-        .shape-3 { width: 80px; height: 80px; left: 60%; animation-duration: 10s; animation-delay: 1s; }
-        .shape-4 { width: 30px; height: 30px; left: 80%; animation-duration: 7s; animation-delay: 3s; }
-        .shape-5 { width: 50px; height: 50px; left: 45%; animation-duration: 9s; animation-delay: 4s; }
     <style>
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
@@ -54,6 +33,56 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .btn-press { transition: transform 0.1s, box-shadow 0.1s; }
         .btn-press:active { transform: translateY(4px); box-shadow: 0 0px 0 transparent; }
+
+        /* 卡底動態背景動畫 */
+        @keyframes floatShape {
+            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.7; }
+            80% { opacity: 0.7; }
+            100% { transform: translateY(-400px) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+        .floating-shape {
+            position: absolute;
+            bottom: -60px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; 
+            animation: floatShape infinite linear;
+            pointer-events: none;
+        }
+        .shape-1 { width: 60px; height: 60px; left: 10%; animation-duration: 8s; animation-delay: 0s; }
+        .shape-2 { width: 40px; height: 40px; left: 30%; animation-duration: 6s; animation-delay: 2s; }
+        .shape-3 { width: 80px; height: 80px; left: 60%; animation-duration: 10s; animation-delay: 1s; }
+        .shape-4 { width: 30px; height: 30px; left: 80%; animation-duration: 7s; animation-delay: 3s; }
+        .shape-5 { width: 50px; height: 50px; left: 45%; animation-duration: 9s; animation-delay: 4s; }
+
+        /* 星星專屬閃爍動畫 */
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.3; transform: scale(0.8) rotate(15deg); }
+        }
+        .animate-twinkle { animation: twinkle 1.5s ease-in-out infinite; }
+        .animate-twinkle-delayed { animation: twinkle 1.5s ease-in-out infinite; animation-delay: 0.7s; }
+
+        /* 結算卡片 Q 彈彈出動畫 */
+        @keyframes popInBounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in { animation: popInBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        /* 全螢幕撒花掉落動畫 */
+        @keyframes confettiFall {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) translateX(20px) rotate(720deg); opacity: 0; }
+        }
+        .confetti-piece {
+            position: fixed;
+            top: -10%;
+            z-index: 9999;
+            pointer-events: none;
+            animation: confettiFall 3s linear forwards;
+        }
     </style>
 </head>
 <body class="h-screen w-screen bg-gray-50 flex flex-col items-center p-2 sm:p-4 overflow-hidden font-sans text-gray-800">
@@ -89,14 +118,12 @@
             </div>
             
             <div class="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-bold">
-                <!-- 移除了 AGAIN 的統計欄位 -->
                 <div class="text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 flex gap-1 items-center"><i class="ph-fill ph-warning-circle hidden sm:block"></i><span id="countHard">0</span></div>
                 <div class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 flex gap-1 items-center"><i class="ph-fill ph-check-circle hidden sm:block"></i><span id="countGood">0</span></div>
                 <div class="text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 flex gap-1 items-center"><i class="ph-fill ph-star hidden sm:block"></i><span id="countEasy">0</span></div>
             </div>
             
             <div class="flex items-center gap-1">
-                <!-- 遊玩紀錄與說明按鈕 -->
                 <button id="historyBtn" class="p-2 text-gray-500 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 rounded-lg transition-colors" title="遊玩紀錄">
                     <i class="ph-bold ph-clock-counter-clockwise text-lg sm:text-xl"></i>
                 </button>
@@ -112,12 +139,22 @@
                 
                 <!-- 卡片正面 -->
                 <div id="cardFront" class="absolute inset-0 bg-white rounded-2xl backface-hidden flex flex-col items-center justify-center p-4 border-2 border-gray-100 bg-cover bg-center bg-no-repeat transition-all duration-300">
-                    <!-- 加入半透明白色遮罩，確保文字不被背景圖干擾 -->
                     <div class="absolute inset-0 bg-white/60 rounded-2xl"></div>
                     
-                    <button id="frontSpeakBtn" class="absolute top-4 right-4 p-3 text-blue-600 hover:bg-blue-100/80 rounded-full transition-colors z-10">
-                        <i class="ph-fill ph-speaker-high text-3xl sm:text-4xl"></i>
+                    <!-- 新增：左上角的閃動星星 -->
+                    <div class="absolute top-[18%] left-[12%] text-yellow-400 animate-twinkle z-10 drop-shadow-sm pointer-events-none">
+                        <i class="ph-fill ph-star text-4xl sm:text-5xl"></i>
+                    </div>
+                    
+                    <!-- 新增：右下角的閃動星星 (帶有延遲效果，讓兩顆星星交錯閃爍) -->
+                    <div class="absolute bottom-[22%] right-[12%] text-yellow-400 animate-twinkle-delayed z-10 drop-shadow-sm pointer-events-none">
+                        <i class="ph-fill ph-star text-4xl sm:text-5xl"></i>
+                    </div>
+
+                    <button id="frontSpeakBtn" class="absolute top-1/2 -translate-y-1/2 right-4 sm:right-6 p-3 text-blue-600 hover:bg-white/60 rounded-full transition-all z-10 drop-shadow-md">
+                        <i class="ph-fill ph-speaker-high text-5xl sm:text-6xl"></i>
                     </button>
+                    
                     <div id="cardFrontText" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 text-center break-words w-full px-4 z-10 drop-shadow-[0_2px_2px_rgba(255,255,255,0.8)]">
                         載入中...
                     </div>
@@ -125,8 +162,9 @@
                         <i class="ph-bold ph-hand-tap"></i> 點擊卡片翻面 (或按 Space)
                     </div>
                 </div>
-<!-- 卡片背面 (粉色動態背景) -->
-                <div class="absolute inset-0 bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100 rounded-2xl backface-hidden rotate-y-180 flex flex-col border-2 border-pink-200 overflow-hidden relative">
+                
+                <!-- 卡片背面 (粉色動態背景) -->
+                <div class="absolute inset-0 bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100 rounded-2xl backface-hidden rotate-y-180 flex flex-col border-2 border-pink-200 overflow-hidden">
                     
                     <!-- 動態漂浮圖案 -->
                     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -137,19 +175,19 @@
                         <div class="floating-shape shape-5"></div>
                     </div>
 
-                    <div id="cardBackContent" class="w-full h-full relative z-10">
+                    <div id="cardBackContent" class="w-full h-full relative z-10 flex flex-col">
                         <!-- 內容將由 JavaScript 動態注入 (會套用自適應排版) -->
                     </div>
                     
-                    <!-- 朗讀例句按鈕 (改為搭配的玫瑰粉色) -->
+                    <!-- 朗讀例句按鈕 -->
                     <button id="backSpeakBtn" class="absolute bottom-4 right-4 p-3 bg-rose-400 text-white rounded-full shadow-lg hover:bg-rose-500 transition-colors z-20 flex items-center justify-center">
                         <i class="ph-fill ph-speaker-high text-xl"></i>
                     </button>
-                </div>                
+                </div>
             </div>
         </div>
 
-        <!-- 控制按鈕 (移除了 Again) -->
+        <!-- 控制按鈕 -->
         <div id="controlsContainer" class="w-full flex gap-2 sm:gap-3 shrink-0 hidden">
             <button onclick="rateCard(1)" class="flex-1 btn-press bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 sm:py-3 rounded-xl shadow-[0_4px_0_#9A3412] text-sm sm:text-lg tracking-wider">
                 Hard
@@ -177,7 +215,6 @@
                 <button onclick="closeHistory()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-2xl"></i></button>
             </div>
             <div id="historyList" class="flex-1 overflow-y-auto space-y-3 pr-1 hide-scrollbar">
-                <!-- 紀錄項目將由 JS 產生 -->
             </div>
         </div>
     </div>
@@ -192,7 +229,6 @@
                 <li class="flex items-center justify-between"><span class="bg-gray-100 px-2 py-1 rounded border shadow-sm font-bold">Space</span> <span>翻轉卡片</span></li>
                 <li class="flex items-center justify-between"><span class="bg-gray-100 px-2 py-1 rounded border shadow-sm font-bold">Enter</span> <span>朗讀發音</span></li>
                 <hr class="my-3 border-gray-100">
-                <!-- 移除了 AGAIN 說明，並將代碼更新為 1, 2, 3 -->
                 <li class="flex items-center justify-between"><span class="bg-orange-50 text-orange-600 border-orange-200 px-2 py-1 rounded border font-bold">1 (Hard)</span> <span>插回中間位置 <span class="text-xs text-orange-400">(進度暫停)</span></span></li>
                 <li class="flex items-center justify-between"><span class="bg-emerald-50 text-emerald-600 border-emerald-200 px-2 py-1 rounded border font-bold">2 (Good)</span> <span>學會了！移出佇列 <span class="text-xs text-emerald-500">(進度+1)</span></span></li>
                 <li class="flex items-center justify-between"><span class="bg-blue-50 text-blue-600 border-blue-200 px-2 py-1 rounded border font-bold">3 (Easy)</span> <span>太簡單！移出佇列 <span class="text-xs text-blue-500">(進度+1)</span></span></li>
@@ -205,17 +241,13 @@
 
     <!-- 完成練習 Modal -->
     <div id="completionModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-white/95 backdrop-blur-md">
-        <div class="text-center flex flex-col items-center bg-white p-6 sm:p-8 rounded-3xl shadow-2xl border-2 border-emerald-100 max-w-md w-11/12">
-            <!-- 結算圖片將由 JS 從本機 IndexedDB 提取，保證零時差 -->
+        <div class="animate-pop-in text-center flex flex-col items-center bg-white p-6 sm:p-8 rounded-3xl shadow-2xl border-2 border-emerald-100 max-w-md w-11/12 relative z-50">
             <img id="endgameImage" alt="End Game" class="w-full h-auto object-cover rounded-2xl mb-5 shadow-md aspect-video border border-gray-100">
-                 
             <h2 class="text-3xl font-extrabold text-gray-800 mb-2">挑戰完成！</h2>
             <p class="text-gray-500 mb-4 font-medium">太棒了，你已徹底征服本次的單字！</p>
-            
             <div class="bg-emerald-50 text-emerald-700 px-5 py-3 rounded-xl font-bold text-lg mb-6 flex items-center gap-2 shadow-sm border border-emerald-100">
                 <i class="ph-fill ph-timer text-2xl"></i> 總花費時間：<span id="timeSpentText" class="text-xl">0分0秒</span>
             </div>
-            
             <button onclick="location.reload()" class="w-full btn-press bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-[0_4px_0_#1D4ED8] text-xl tracking-wide">
                 返回主畫面
             </button>
@@ -265,18 +297,17 @@
         async function downloadAllImagesSilently() {
             if (!fullDeck || fullDeck.length === 0) return;
 
-            // 顯示正在安裝的提示進度條
             const indicator = document.createElement('div');
             indicator.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-md z-50 flex items-center gap-2 border border-blue-100 transition-opacity duration-500';
             indicator.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> <span id="dlProgress">正在將圖庫安裝至本機 0%</span>';
             document.body.appendChild(indicator);
 
             let downloaded = 0;
-            const total = fullDeck.length + 1; // +1 是給 ENDGAME 圖片
+            const total = fullDeck.length + 1; 
 
             const fetchAndSave = async (keyword, urls) => {
                 const exists = await getImageFromDB(keyword);
-                if (exists) return true; // 已經安裝過了
+                if (exists) return true; 
 
                 for (const url of urls) {
                     try {
@@ -291,7 +322,6 @@
                 return false;
             };
 
-            // 優先安裝結算畫面圖片
             await fetchAndSave('ENDGAME', [
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/ENDGAME.jpeg',
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/ENDGAME.png',
@@ -299,7 +329,6 @@
             ]);
             downloaded++;
 
-            // 背景安裝所有單字圖片
             for (const card of fullDeck) {
                 const word = card[0];
                 const trimmed = word.trim();
@@ -320,7 +349,6 @@
                 document.getElementById('dlProgress').textContent = `正在將圖庫安裝至本機 ${pct}%`;
             }
 
-            // 下載完成，提示並消失
             indicator.innerHTML = '<i class="ph-fill ph-check-circle text-emerald-500 text-lg"></i> <span class="text-emerald-700">圖庫已成功安裝至本機！</span>';
             setTimeout(() => {
                 indicator.classList.add('opacity-0');
@@ -328,9 +356,6 @@
             }, 3000);
         }
 
-        // ==========================================
-        // 圖片錯誤網路備援處理 (當本機沒抓到時的防護網)
-        // ==========================================
         function handleImageError(img) {
             const cleanWord = img.dataset.word;
             if (!cleanWord) {
@@ -505,7 +530,7 @@ settlement (n.) 定居點、和解
 【搭配詞】
 settle a dispute 解決糾紛
 【例句】
-They decided to settle down in a quiet village. (他們決定在安靜的村莊定居。)"
+They decided to settle down in a quiet village. (他們决定在安静的村庄定居。)"
 Caution,"Caution (n.) 謹慎、警告
 【詞性變化】
 cautious (adj.) 小心的
@@ -979,9 +1004,9 @@ Necessary,"Necessary (adj.) 必要的、必須的
 【詞性變化】
 necessity (n.) 必需品
 【搭配詞】
-necessary steps 必要步驟
+necessary steps 必要步骤
 【例句】
-Take all necessary precautions before entering. (進入前請採取一切必要的預防措施。)"
+Take all necessary precautions before entering. (进入前请采取一切必要的预防措施。)"
 Generous,"Generous (adj.) 慷慨的、大方的
 【詞性變化】
 generosity (n.) 慷慨
@@ -1045,601 +1070,601 @@ investigate (v.) 調查
 under investigation 調查中
 【例句】
 The police launched an investigation into the cause. (警方對事故原因展開了調查。)"
-Punish,"Punish (v.) 懲罰、處罰
+Punish,"Punish (v.) 惩罚、处分
 【詞性變化】
-punishment (n.) 懲罰
+punishment (n.) 惩罚
 【搭配詞】
-severely punish 嚴厲懲罰
+severely punish 严厉惩罚
 【例句】
-Cheating in exams will be severely punished. (考試作弊將受到嚴懲。)"
-Scold,"Scold (v.) 責備、訓斥
+Cheating in exams will be severely punished. (考试作弊将受到严惩。)"
+Scold,"Scold (v.) 责备、训斥
 【詞性變化】
-scolding (n.) 責罵
+scolding (n.) 责骂
 【搭配詞】
-scold someone for... 因…訓斥某人
+scold someone for... 因…训斥某人
 【例句】
-The mother scolded her son for drawing on the wall. (母親因兒子在牆上畫畫而訓斥了他。)"
-Horizontal,"Horizontal (adj.) 水平的、橫的
+The mother scolded her son for drawing on the wall. (母亲因儿子在墙上画画而训斥了他。)"
+Horizontal,"Horizontal (adj.) 水平的、横的
 【詞性變化】
 horizontally (adv.) 水平地
 【搭配詞】
-horizontal line 水平線
+horizontal line 水平线
 【例句】
-Draw a straight horizontal line across the paper. (在紙上畫出一條直直的水平線。)"
-Vertically,"Vertically (adv.) 垂直地、豎直地
+Draw a straight horizontal line across the paper. (在纸上画出一条直直的水平线。)"
+Vertically,"Vertically (adv.) 垂直地、竖直地
 【詞性變化】
 vertical (adj.) 垂直的
 【搭配詞】
-stacked vertically 垂直堆疊
+stacked vertically 垂直堆叠
 【例句】
-The boxes were stacked vertically in the store. (盒子在倉庫裡垂直堆疊著。)"
-Position,"Position (n.) 位置、職位
-【詞性變化】
+The boxes were stacked vertically in the store. (盒子在仓库里垂直堆叠着。)"
+Position,"Position (n.) 位置、职位
+【詞性变化】
 position (v.) 安置
-【搭配詞】
-key position 關鍵職位
+【搭配词】
+key position 关键职位
 【例句】
-She applied for a managerial position in sales. (她應徵了銷售部門的管理職位。)"
-Occasion,"Occasion (n.) 場合、時機
-【詞性變化】
-occasional (adj.) 偶爾的
-【搭配詞】
-special occasion 特別場合
+She applied for a managerial position in sales. (她应征了销售部门的管理职位。)"
+Occasion,"Occasion (n.) 场合、时机
+【詞性变化】
+occasional (adj.) 偶尔的
+【搭配词】
+special occasion 特别场合
 【例句】
-Dressing up is appropriate for a formal occasion. (在正式場合盛裝打扮是合適的。)"
-Category,"Category (n.) 類別、範疇
-【詞性變化】
-categorize (v.) 分類
-【搭配詞】
-product category 產品類別
+Dressing up is appropriate for a formal occasion. (在正式场合盛装打扮是合适的。)"
+Category,"Category (n.) 类别、范畴
+【詞性变化】
+categorize (v.) 分类
+【搭配词】
+product category 产品类别
 【例句】
-Books are arranged by category in the library. (圖書館中的書籍是按類別排列的。)"
-Purchase,"Purchase (v.) 購買
-【詞性變化】
-purchase (n.) 購買物
-【搭配詞】
-make a purchase 進行購買
+Books are arranged by category in the library. (图书馆中的书籍是按类别排列的。)"
+Purchase,"Purchase (v.) 购买
+【詞性变化】
+purchase (n.) 购买物
+【搭配词】
+make a purchase 进行购买
 【例句】
-You can purchase tickets online in advance. (您可以提前在網路上購買門票。)"
-Garment,"Garment (n.) 服裝、衣物
-【詞性變化】
-garment industry 服裝業
-【搭配詞】
-garment care 衣物保養
+You can purchase tickets online in advance. (您可以提前在网络上购买门票。)"
+Garment,"Garment (n.) 服装、衣物
+【詞性变化】
+garment industry 服装业
+【搭配词】
+garment care 衣物保养
 【例句】
-This delicate garment must be washed by hand. (這件精緻的衣服必須手洗。)"
-Boost,"Boost (v.) 提升、促進
-【詞性變化】
+This delicate garment must be washed by hand. (这件精致的衣服必须手洗。)"
+Boost,"Boost (v.) 提升、促进
+【詞性变化】
 boost (n.) 提高
-【搭配詞】
+【搭配词】
 boost confidence 提升信心
 【例句】
-Positive feedback boosted her self-confidence. (正面的回饋提升了她的自信心。)"
-Customize,"Customize (v.) 訂製、客製化
-【詞性變化】
-customization (n.) 客製化
-【搭配詞】
-customize order 客製化訂單
+Positive feedback boosted her self-confidence. (正面的反馈提升了她的自信心。)"
+Customize,"Customize (v.) 订制、客制化
+【詞性变化】
+customization (n.) 客制化
+【搭配词】
+customize order 客制化订单
 【例句】
-Customers can customize their shoes on the website. (顧客可在網站上訂製鞋款。)"
-Specifications,"Specifications (n.) 規格、說明書 (specification 複數)
-【詞性變化】
-specify (v.) 具體說明
-【搭配詞】
-product specifications 產品規格
+Customers can customize their shoes on the website. (顾客可在网站上订制鞋款。)"
+Specifications,"Specifications (n.) 规格、说明书 (specification 复数)
+【詞性变化】
+specify (v.) 具体说明
+【搭配词】
+product specifications 产品规格
 【例句】
-Check the specifications before making a purchase. (購買前請詳閱產品規格。)"
-Dwell,"Dwell (v.) 居住、沉溺於
-【詞性變化】
+Check the specifications before making a purchase. (购买前请详阅产品规格。)"
+Dwell,"Dwell (v.) 居住、沉溺于
+【詞性变化】
 dweller (n.) 居住者
-【搭配詞】
-dwell on the past 沉溺於過去
+【搭配词】
+dwell on the past 沉溺于过去
 【例句】
-Don't dwell on your past mistakes; move forward. (不要沉溺於過去的錯誤；向前看。)"
-Nudge,"Nudge (v.) 輕推、微調引導
-【詞性變化】
-nudge (n.) 輕推
-【搭配詞】
-nudge someone in the right direction 微引導某人走向正確方向
+Don't dwell on your past mistakes; move forward. (不要沉溺于过去的错误；向前看。)"
+Nudge,"Nudge (v.) 轻推、微调引导
+【詞性变化】
+nudge (n.) 轻推
+【搭配词】
+nudge someone in the right direction 微引导某人走向正确方向
 【例句】
-The teacher nudged him to complete his homework. (老師輕推督促他完成作業。)"
-Manipulate,"Manipulate (v.) 操縱、操控
-【詞性變化】
-manipulation (n.) 操縱
-【搭配詞】
-manipulate data 操縱數據
+The teacher nudged him to complete his homework. (老师轻推督促他完成作业。)"
+Manipulate,"Manipulate (v.) 操纵、操控
+【詞性变化】
+manipulation (n.) 操纵
+【搭配词】
+manipulate data 操纵数据
 【例句】
-It is unethical to manipulate research results. (操縱研究結果是不道德的。)"
-Caricature,"Caricature (n.) 諷刺畫、漫畫造型
-【詞性變化】
-caricaturist (n.) 漫畫家
-【搭配詞】
-draw a caricature 畫諷刺畫
+It is unethical to manipulate research results. (操纵研究结果是不道德的。)"
+Caricature,"Caricature (n.) 讽刺画、漫画造型
+【詞性变化】
+caricaturist (n.) 漫画家
+【搭配词】
+draw a caricature 画讽刺画
 【例句】
-The artist drew a funny caricature of the politician. (藝術家畫了一幅政客的滑稽諷刺畫。)"
-Complexity,"Complexity (n.) 複雜性、複雜度
-【詞性變化】
-complex (adj.) 複雜的
-【搭配詞】
-reduce complexity 降低複雜性
+The artist drew a funny caricature of the politician. (艺术家画了一幅政客的滑稽讽刺画。)"
+Complexity,"Complexity (n.) 复杂性、复杂度
+【詞性变化】
+complex (adj.) 复杂的
+【搭配词】
+reduce complexity 降低复杂性
 【例句】
-The project was delayed due to its high complexity. (該計畫因複雜度高而延誤。)"
-Personality,"Personality (n.) 個性、人格
-【詞性變化】
-personal (adj.) 個人的
-【搭配詞】
-outgoing personality 外向的個性
+The project was delayed due to its high complexity. (该计划因复杂度高而延误。)"
+Personality,"Personality (n.) 个性、人格
+【詞性变化】
+personal (adj.) 个人的
+【搭配词】
+outgoing personality 外向的个性
 【例句】
-Her warm personality made her popular at school. (她熱情的個性使她在學校大受歡迎。)"
-Define,"Define (v.) 定義、界定
-【詞性變化】
-definition (n.) 定義
-【搭配詞】
+Her warm personality made her popular at school. (她热情的个性使她在学校大受欢迎。)"
+Define,"Define (v.) 定义、界定
+【詞性变化】
+definition (n.) 定义
+【搭配词】
 clearly define 清晰界定
 【例句】
-Terms must be clearly defined in the contract. (合約中必須明確界定條款。)"
-Rest,"Rest (n.) 休息、剩餘部分
-【詞性變化】
-restful (adj.) 寧靜的
-【搭配詞】
+Terms must be clearly defined in the contract. (合约中必须明确界定条款。)"
+Rest,"Rest (n.) 休息、剩余部分
+【詞性变化】
+restful (adj.) 宁静的
+【搭配词】
 take a rest 休息一下
 【例句】
-After a long walk, we sat down to take a rest. (長途漫步後，我們坐下來休息。)"
-Omit,"Omit (v.) 省略、遺漏
-【詞性變化】
+After a long walk, we sat down to take a rest. (长途漫步后，我们坐下来休息。)"
+Omit,"Omit (v.) 省略、遗漏
+【詞性变化】
 omission (n.) 省略
-【搭配詞】
-omit details 省略細節
+【搭配词】
+omit details 省略细节
 【例句】
-You may omit unnecessary steps from the procedure. (您可以從流程中省略不必要的步驟。)"
-Signal,"Signal (n.) 信號、暗號
-【詞性變化】
-signal (v.) 發信號
-【搭配詞】
-traffic signal 交通信號
+You may omit unnecessary steps from the procedure. (您可以从流程中省略不必要的步骤。)"
+Signal,"Signal (n.) 信号、暗号
+【詞性变化】
+signal (v.) 发信号
+【搭配词】
+traffic signal 交通信号
 【例句】
-The red traffic signal means drivers must stop. (紅色的交通信號意味著駕駛必須停止。)"
-Structure,"Structure (n.) 結構、建築物
-【詞性變化】
-structural (adj.) 結構上的
-【搭配詞】
-organizational structure 組織結構
+The red traffic signal means drivers must stop. (红色的交通信号意味着驾驶必须停止。)"
+Structure,"Structure (n.) 结构、建筑物
+【詞性变化】
+structural (adj.) 结构上的
+【搭配词】
+organizational structure 组织结构
 【例句】
-Engineers inspected the structural safety of the bridge. (工程師檢查了橋樑的結構安全。)"
-Habour,"Habour (n.) 港口、避難所 (Harbour)
-【詞性變化】
-harbor (v.) 庇護、懷有
-【搭配詞】
+Engineers inspected the structural safety of the bridge. (工程师检查了桥梁的结构安全。)"
+Habour,"Habour (n.) 港口、避难所 (Harbour)
+【詞性变化】
+harbor (v.) 庇护、怀有
+【搭配词】
 natural habour 天然港口
 【例句】
-Ships rested safely in the natural habour. (船隻安全地停泊在天然港口中。)"
-Search,"Search (v.) 搜尋、尋找
-【詞性變化】
+Ships rested safely in the natural habour. (船只安全地停泊在天然港口中。)"
+Search,"Search (v.) 搜寻、寻找
+【詞性变化】
 search (n.) 搜索
-【搭配詞】
-search for information 搜尋資訊
+【搭配词】
+search for information 搜寻资讯
 【例句】
-Scientists continue to search for renewable energy. (科學家繼續尋找可再生能源。)"
-Make one's bed,"Make one's bed (phr.) 整理床舖 
-【詞性變化】
-make the bed 鋪床
-【搭配詞】
-make one's bed every morning 每天早上整理床舖
+Scientists continue to search for renewable energy. (科学家继续寻找可再生能源。)"
+Make one's bed,"Make one's bed (phr.) 整理床铺 
+【詞性变化】
+make the bed 铺床
+【搭配词】
+make one's bed every morning 每天早上整理床铺
 【例句】
-He makes his bed every morning before breakfast. (他每天早上吃早餐前都會整理床舖。)"
+He makes his bed every morning before breakfast. (他每天早上吃早餐前都会整理床铺。)"
 Believe in somebody,"Believe in somebody (phr.) 信任某人、相信某人的能力
-【詞性變化】
+【詞性变化】
 belief (n.) 信仰
-【搭配詞】
-firmly believe in... 堅定信任某人
+【搭配词】
+firmly believe in... 坚定信任某人
 【例句】
-Parents should always believe in their children. (父母應該始終信任自己的孩子。)"
-Set the table,"Set the table (phr.) 擺好餐具備餐
-【詞性變化】
+Parents should always believe in their children. (父母应该始终信任自己的孩子。)"
+Set the table,"Set the table (phr.) 摆好餐具备餐
+【詞性变化】
 tableware (n.) 餐具
-【搭配詞】
-set the table for dinner 擺好晚餐餐具
+【搭配词】
+set the table for dinner 摆好晚餐餐具
 【例句】
-Please help set the table before guests arrive. (請在客人到達前幫忙擺好餐具。)"
-Object,"Object (v.) 反對、不贊同
-【詞性變化】
-objection (n.) 反對理由
-【搭配詞】
-object to the proposal 反對該提案
+Please help set the table before guests arrive. (请在客人到达前帮忙摆好餐具。)"
+Object,"Object (v.) 反对、不赞同
+【詞性变化】
+objection (n.) 反对理由
+【搭配词】
+object to the proposal 反对该提案
 【例句】
-Several members objected to the proposed budget. (幾位成員反對擬議的預算。)"
-Oppose,"Oppose (v.) 反對、對抗
-【詞性變化】
-opposition (n.) 反對
-【搭配詞】
-strongly oppose 強烈反對
+Several members objected to the proposed budget. (几位成员反对拟议的预算。)"
+Oppose,"Oppose (v.) 反对、对抗
+【詞性变化】
+opposition (n.) 反对
+【搭配词】
+strongly oppose 强烈反对
 【例句】
-Local residents strongly oppose the construction plan. (當地居民強烈反對這項興建計畫。)"
-Resident,"Resident (n.) 居民、住戶
-【詞性變化】
+Local residents strongly oppose the construction plan. (当地居民强烈反对这项兴建计划。)"
+Resident,"Resident (n.) 居民、住户
+【詞性变化】
 residence (n.) 住宅
-【搭配詞】
-local resident 當地居民
+【搭配词】
+local resident 当地居民
 【例句】
-Local residents raised concerns about traffic noise. (當地居民對交通噪音表示擔憂。)"
-Regret,"Regret (v.) 後悔、遺憾
-【詞性變化】
-regretful (adj.) 遺憾的
-【搭配詞】
-deeply regret 深感遺憾
+Local residents raised concerns about traffic noise. (当地居民对交通噪音表示担忧。)"
+Regret,"Regret (v.) 后悔、遗憾
+【詞性变化】
+regretful (adj.) 遗憾的
+【搭配词】
+deeply regret 深感遗憾
 【例句】
-I deeply regret not taking that career opportunity. (我深感遺憾沒有抓住那次職業機會。)"
-Academic,"Academic (adj.) 學術的、學校的
-【詞性變化】
-academy (n.) 學院
-【搭配詞】
-academic achievement 學術成就
+I deeply regret not taking that career opportunity. (我深感遗憾没有抓住那次职业机会。)"
+Academic,"Academic (adj.) 学术的、学校的
+【詞性变化】
+academy (n.) 学院
+【搭配词】
+academic achievement 学术成就
 【例句】
-The university promotes academic research excellence. (該大學致力於促進卓越的學術研究。)"
-Expository,"Expository (adj.) 說明性的、解釋性的
-【詞性變化】
-exposition (n.) 說明
-【搭配詞】
-expository essay 說明文
+The university promotes academic research excellence. (该大学致力于促进卓越的学术研究。)"
+Expository,"Expository (adj.) 说明性的、解释性的
+【詞性变化】
+exposition (n.) 说明
+【搭配词】
+expository essay 说明文
 【例句】
-Students wrote an expository essay on climate change. (學生們寫了一篇關於氣候變遷的說明文。)"
-Narrative,"Narrative (n.) 敘事、故事
-【詞性變化】
-narrate (v.) 敘述
-【搭配詞】
-personal narrative 個人敘事
+Students wrote an expository essay on climate change. (学生们写了一篇关于气候变迁的说明文。)"
+Narrative,"Narrative (n.) 叙事、故事
+【詞性变化】
+narrate (v.) 叙述
+【搭配词】
+personal narrative 个人叙事
 【例句】
-Her narrative described her journey across Asia. (她的敘事描述了她的亞洲之旅。)"
-Apply,"Apply (v.) 申請、應用、塗抹
-【詞性變化】
-application (n.) 申請
-【搭配詞】
-apply for a job 應徵工作
+Her narrative described her journey across Asia. (她的叙事描述了她的亚洲之旅。)"
+Apply,"Apply (v.) 申请、应用、涂抹
+【詞性变化】
+application (n.) 申请
+【搭配词】
+apply for a job 应征工作
 【例句】
-She decided to apply for a scholarship abroad. (她決定申請國外獎學金。)"
-Dotted,"Dotted (adj.) 點狀的、星羅棋布的
-【詞性變化】
-dot (n.) 小點
-【搭配詞】
-dotted line 虛線
+She decided to apply for a scholarship abroad. (她决定申请国外奖学金。)"
+Dotted,"Dotted (adj.) 点状的、星罗棋布的
+【詞性变化】
+dot (n.) 小点
+【搭配词】
+dotted line 虚线
 【例句】
-Please sign your name on the dotted line. (請在虛線上簽署您的姓名。)"
-Coast,"Coast (n.) 海岸、海濱
-【詞性變化】
+Please sign your name on the dotted line. (请在虚线上签署您的姓名。)"
+Coast,"Coast (n.) 海岸、海滨
+【詞性变化】
 coastal (adj.) 海岸的
-【搭配詞】
-along the coast 沿著海岸
+【搭配词】
+along the coast 沿着海岸
 【例句】
-We took a scenic drive along the coast. (我們沿著海岸進行了一趟風景優美的駕駛。)"
-Explore,"Explore (v.) 探索、探險
-【詞性變化】
+We took a scenic drive along the coast. (我们沿着海岸进行了一趟风景优美的驾驶。)"
+Explore,"Explore (v.) 探索、探险
+【詞性变化】
 exploration (n.) 探索
-【搭配詞】
-explore options 探索選擇
+【搭配词】
+explore options 探索选择
 【例句】
-Researchers explore new treatments for diseases. (研究人員探索新疾病治療方法。)"
-Spot,"Spot (n.) 地點、斑點
-【詞性變化】
-spot (v.) 看見/發現
-【搭配詞】
-tourist spot 觀光景點
+Researchers explore new treatments for diseases. (研究人员探索新疾病治疗方法。)"
+Spot,"Spot (n.) 地点、斑点
+【詞性变化】
+spot (v.) 看见/发现
+【搭配词】
+tourist spot 观光景点
 【例句】
-This lake is a popular spot for picnics. (這座湖泊是野餐熱門景點。)"
-Luxury,"Luxury (n.) 奢華、奢侈品
-【詞性變化】
-luxurious (adj.) 豪華的
-【搭配詞】
-luxury hotel 奢華飯店
+This lake is a popular spot for picnics. (这座湖泊是野餐热门景点。)"
+Luxury,"Luxury (n.) 奢华、奢侈品
+【詞性变化】
+luxurious (adj.) 豪华的
+【搭配词】
+luxury hotel 奢华饭店
 【例句】
-Staying at the luxury resort was an amazing experience. (住在奢華度假村是一次棒極了的體驗。)"
-Liner,"Liner (n.) 郵輪、班輪
-【詞性變化】
-ocean liner 遠洋郵輪
-【搭配詞】
-luxury liner 豪華郵輪
+Staying at the luxury resort was an amazing experience. (住在奢华度假村是一次棒极了的体验。)"
+Liner,"Liner (n.) 邮轮、班轮
+【詞性变化】
+ocean liner 远洋邮轮
+【搭配词】
+luxury liner 豪华邮轮
 【例句】
-The ocean liner set sail across the Atlantic Ocean. (遠洋郵輪航行穿越大西洋。)"
-Coach,"Coach (n.) 長途客運、教練
-【詞性變化】
-coaching (n.) 指導
-【搭配詞】
-sports coach 體育教練
+The ocean liner set sail across the Atlantic Ocean. (远洋邮轮航行穿越大西洋。)"
+Coach,"Coach (n.) 长途客运、教练
+【詞性变化】
+coaching (n.) 指导
+【搭配词】
+sports coach 体育教练
 【例句】
-The football team welcomed their new head coach. (足球隊迎來了他們的新任總教練。)"
-Lorry,"Lorry (n.) 大貨車、卡車 (英式)
-【詞性變化】
-lorry driver 貨車司機
-【搭配詞】
-heavy lorry 重型貨車
+The football team welcomed their new head coach. (足球队迎来了他们的新任总教练。)"
+Lorry,"Lorry (n.) 大货车、卡车 (英式)
+【詞性变化】
+lorry driver 货车司机
+【搭配词】
+heavy lorry 重型货车
 【例句】
-A heavy lorry delivered goods to the warehouse. (一輛重型貨車將貨物送達倉庫。)"
-Panic,"Panic (n.) 恐慌、驚慌
-【詞性變化】
+A heavy lorry delivered goods to the warehouse. (一辆重型货车将货物送达仓库。)"
+Panic,"Panic (n.) 恐慌、惊慌
+【詞性变化】
 panicky (adj.) 恐慌的
-【搭配詞】
+【搭配词】
 in a panic 恐慌中
 【例句】
-Don't panic in an emergency; stay calm. (緊急情況下不要恐慌；保持冷靜。)"
-Tablet,"Tablet (n.) 平板電腦、藥片
-【詞性變化】
-tablet computer 平板電腦
-【搭配詞】
-take a tablet 服用藥片
+Don't panic in an emergency; stay calm. (紧急情况下不要恐慌；保持冷静。)"
+Tablet,"Tablet (n.) 平板电脑、药片
+【詞性变化】
+tablet computer 平板电脑
+【搭配词】
+take a tablet 服用药片
 【例句】
-He reads news on his tablet computer every morning. (他每天早上在平板電腦上閱讀新聞。)"
+He reads news on his tablet computer every morning. (他每天早上在平板电脑上阅读新闻。)"
 Rhinoceros,"Rhinoceros (n.) 犀牛
-【詞性變化】
-rhino (n.) 犀牛(簡稱)
-【搭配詞】
-endangered rhinoceros 瀕危犀牛
+【詞性变化】
+rhino (n.) 犀牛(简称)
+【搭配词】
+endangered rhinoceros 濒危犀牛
 【例句】
-The African rhinoceros is a protected species. (非洲犀牛是受保護物種。)"
-Extinct,"Extinct (adj.) 滅絕的、絕種的
-【詞性變化】
-extinction (n.) 絕種
-【搭配詞】
-become extinct 滅絕
+The African rhinoceros is a protected species. (非洲犀牛是受保护物种。)"
+Extinct,"Extinct (adj.) 灭绝的、绝种的
+【詞性变化】
+extinction (n.) 绝种
+【搭配词】
+become extinct 灭绝
 【例句】
-Dinosaurs became extinct millions of years ago. (恐龍於數百萬年前滅絕了。)"
+Dinosaurs became extinct millions of years ago. (恐龙于数百万年前灭绝了。)"
 Equal,"Equal (adj.) 平等的、相等的
-【詞性變化】
+【詞性变化】
 equality (n.) 平等
-【搭配詞】
-equal rights 平等權利
+【搭配词】
+equal rights 平等权利
 【例句】
-All citizens deserve equal opportunities in education. (所有公民都應享有平等的教育機會。)"
+All citizens deserve equal opportunities in education. (所有公民都应享有平等的教育机会。)"
 Identical,"Identical (adj.) 完全相同的、同一的
-【詞性變化】
-identically (adv.) 同樣地
-【搭配詞】
-identical twins 同卵雙胞胎
+【詞性变化】
+identically (adv.) 同样地
+【搭配词】
+identical twins 同卵双胞胎
 【例句】
-The two sisters are identical twins. (這對姐妹是同卵雙胞胎。)"
-Debt,"Debt (n.) 債務、借款
-【詞性變化】
-debtor (n.) 債務人
-【搭配詞】
-pay off debt 還清債務
+The two sisters are identical twins. (这对姐妹是同卵双胞胎。)"
+Debt,"Debt (n.) 债务、借款
+【詞性变化】
+debtor (n.) 债务人
+【搭配词】
+pay off debt 还清债务
 【例句】
-It took years of hard work to pay off his debt. (他花了多年的辛勤工作才還清債務。)"
-Exactly,"Exactly (adv.) 確切地、精確地
-【詞性變化】
-exact (adj.) 精確的
-【搭配詞】
-exactly right 完全正確
+It took years of hard work to pay off his debt. (他花了多年的辛勤工作才还清债务。)"
+Exactly,"Exactly (adv.) 确切地、精确地
+【詞性变化】
+exact (adj.) 精确的
+【搭配词】
+exactly right 完全正确
 【例句】
-Your answer is exactly what I was looking for. (你的答案完全是我在尋找的。)"
-Loyal,"Loyal (adj.) 忠誠的、忠實的
-【詞性變化】
-loyalty (n.) 忠誠
-【搭配詞】
-loyal customer 忠實顧客
+Your answer is exactly what I was looking for. (你的答案完全是我在寻找的。)"
+Loyal,"Loyal (adj.) 忠诚的、忠实的
+【詞性变化】
+loyalty (n.) 忠诚
+【搭配词】
+loyal customer 忠实顾客
 【例句】
-The company rewards loyal customers with discounts. (該公司以折扣回饋忠實顧客。)"
-Native,"Native (adj.) 本土的、本國的
-【詞性變化】
+The company rewards loyal customers with discounts. (该公司以折扣回馈忠实顾客。)"
+Native,"Native (adj.) 本土的、本国的
+【詞性变化】
 native (n.) 本地人
-【搭配詞】
-native speaker 母語人士
+【搭配词】
+native speaker 母语人士
 【例句】
-She speaks English like a native speaker. (她說英語就像母語人士一樣流利。)"
+She speaks English like a native speaker. (她说英语就像母语人士一样流利。)"
 Anxiously,"Anxiously (adv.) 焦急地、不安地
-【詞性變化】
-anxious (adj.) 焦慮的
-【搭配詞】
+【詞性变化】
+anxious (adj.) 焦虑的
+【搭配词】
 wait anxiously 焦急地等待
 【例句】
-Parents waited anxiously for news of their children. (家長們焦急地等待著孩子們的消息。)"
+Parents waited anxiously for news of their children. (家长们焦急地等待着孩子们的消息。)"
 Deliberately,"Deliberately (adv.) 故意地、蓄意地
-【詞性變化】
+【詞性变化】
 deliberate (adj.) 蓄意的
-【搭配詞】
-deliberately avoid 故意避開
+【搭配词】
+deliberately avoid 故意避开
 【例句】
-He deliberately avoided answering the awkward question. (他故意避開不回答尷尬的問題。)"
+He deliberately avoided answering the awkward question. (他故意避开不回答尴尬的问题。)"
 Probably,"Probably (adv.) 大概、很可能
-【詞性變化】
+【詞性变化】
 probable (adj.) 可能的
-【搭配詞】
-probably happen 很可能發生
+【搭配词】
+probably happen 很可能发生
 【例句】
-We will probably finish the project by Friday. (我們很可能會在週五前完成該計畫。)"
-Occasionally,"Occasionally (adv.) 偶爾地、有時
-【詞性變化】
-occasional (adj.) 偶爾的
-【搭配詞】
-visit occasionally 偶爾拜訪
+We will probably finish the project by Friday. (我们很可能会在周五前完成该计划。)"
+Occasionally,"Occasionally (adv.) 偶尔地、有时
+【詞性变化】
+occasional (adj.) 偶尔的
+【搭配词】
+visit occasionally 偶尔拜访
 【例句】
-They occasionally go out for dinner on weekends. (他們週末偶爾會出去吃晚餐。)"
-Lecture,"Lecture (n.) 講座、授課
-【詞性變化】
-lecturer (n.) 講師
-【搭配詞】
-attend a lecture 參加講座
+They occasionally go out for dinner on weekends. (他们周末偶尔会出去吃晚餐。)"
+Lecture,"Lecture (n.) 讲座、授课
+【詞性变化】
+lecturer (n.) 讲师
+【搭配词】
+attend a lecture 参加讲座
 【例句】
-The professor gave an inspiring lecture on physics. (教授發表了一場鼓舞人心的物理學講座。)"
-Conductor,"Conductor (n.) 指揮家、導體、售票員
-【詞性變化】
-conduct (v.) 指導/傳導
-【搭配詞】
-orchestra conductor 管弦樂團指揮
+The professor gave an inspiring lecture on physics. (教授发表了一场鼓舞人心的物理学讲座。)"
+Conductor,"Conductor (n.) 指挥家、导体、售票员
+【詞性变化】
+conduct (v.) 指导/传导
+【搭配词】
+orchestra conductor 管弦乐团指挥
 【例句】
-The conductor raised his baton and the music began. (指揮家舉起指揮棒，音樂隨之開始。)"
-Guilt,"Guilt (n.) 內疚、罪惡感
-【詞性變化】
-guilty (adj.) 內疚的
-【搭配詞】
-feel guilt 感到內疚
+The conductor raised his baton and the music began. (指挥家举起指挥棒，音乐随之开始。)"
+Guilt,"Guilt (n.) 内疚、罪恶感
+【詞性变化】
+guilty (adj.) 内疚的
+【搭配词】
+feel guilt 感到内疚
 【例句】
-He felt a deep sense of guilt for breaking his word. (他因失言而感到深深的內疚。)"
-Moreish,"Moreish (adj.) 讓人吃停不下來的(英式口語)
-【詞性變化】
+He felt a deep sense of guilt for breaking his word. (他因失言而感到深深的内疚。)"
+Moreish,"Moreish (adj.) 让人吃停不下来的(英式口语)
+【詞性变化】
 more (adj.) 更多的
-【搭配詞】
-moreish snack 讓人停不下來的小吃
+【搭配词】
+moreish snack 让人停不下来的小吃
 【例句】
-These homemade cookies are extremely moreish. (這些自製餅乾真是讓人一口接一口停不下來。)"
-Flock,"Flock (n.) 羊群、鳥群、人群
-【詞性變化】
+These homemade cookies are extremely moreish. (这些自制饼干真是让人一口接一口停不下来。)"
+Flock,"Flock (n.) 羊群、鸟群、人群
+【詞性变化】
 flock (v.) 聚集
-【搭配詞】
-a flock of birds 一群鳥
+【搭配词】
+a flock of birds 一群鸟
 【例句】
-A large flock of birds flew across the sunset sky. (一大群鳥飛過了夕陽天空。)"
+A large flock of birds flew across the sunset sky. (一大群鸟飞过了夕阳天空。)"
 Ideal,"Ideal (adj.) 理想的、完美的
-【詞性變化】
+【詞性变化】
 ideal (n.) 理想
-【搭配詞】
-ideal choice 理想選擇
+【搭配词】
+ideal choice 理想选择
 【例句】
-This quiet beach is an ideal location for relaxation. (這個安靜的沙灘是放鬆身心的理想地點。)"
+This quiet beach is an ideal location for relaxation. (这个安静的沙滩是放松身心的理想地点。)"
 Poisonous,"Poisonous (adj.) 有毒的
-【詞性變化】
-poison (n.) 毒藥
-【搭配詞】
+【詞性变化】
+poison (n.) 毒药
+【搭配词】
 poisonous snake 有毒的蛇
 【例句】
 Beware of poisonous mushrooms in the forest. (小心森林中的有毒蘑菇。)"
-Stewardship,"Stewardship (n.) 管理職責、託管責任
-【詞性變化】
-steward (n.) 管理員
-【搭配詞】
-environmental stewardship 環境託管責任
+Stewardship,"Stewardship (n.) 管理职责、托管责任
+【詞性变化】
+steward (n.) 管理员
+【搭配词】
+environmental stewardship 环境托管责任
 【例句】
-Good environmental stewardship helps protect nature. (良好的環境託管職責有助於保護自然。)"
-Represent,"Represent (v.) 代表、象徵
-【詞性變化】
+Good environmental stewardship helps protect nature. (良好的环境托管职责有助于保护自然。)"
+Represent,"Represent (v.) 代表、象征
+【詞性变化】
 representation (n.) 代表
-【搭配詞】
-represent a client 代表客戶
+【搭配词】
+represent a client 代表客户
 【例句】
-The lawyer was hired to represent the company in court. (該律師被聘請在法庭上代表該公司。)"
-Cottage,"Cottage (n.) 農舍、小屋
-【詞性變化】
-cottage industry 手工業
-【搭配詞】
-cozy cottage 溫馨的小屋
+The lawyer was hired to represent the company in court. (该律师被聘请在法庭上代表该公司。)"
+Cottage,"Cottage (n.) 农舍、小屋
+【詞性变化】
+cottage industry 手工业
+【搭配词】
+cozy cottage 温馨的小屋
 【例句】
-They rented a cozy cottage in the mountains for vacation. (他們租了山裡溫馨的小屋度假。)"
-Decay,"Decay (v.) 腐爛、衰退
-【詞性變化】
-decay (n.) 腐爛
-【搭配詞】
+They rented a cozy cottage in the mountains for vacation. (他们租了山里温馨的小屋度假。)"
+Decay,"Decay (v.) 腐烂、衰退
+【詞性变化】
+decay (n.) 腐烂
+【搭配词】
 tooth decay 蛀牙
 【例句】
-Regular brushing helps prevent tooth decay. (定期刷牙有助於預防蛀牙。)"
-Foremost,"Foremost (adj.) 最優秀的、首要的
-【詞性變化】
+Regular brushing helps prevent tooth decay. (定期刷牙有助于预防蛀牙。)"
+Foremost,"Foremost (adj.) 最优秀的、首要的
+【詞性变化】
 first and foremost 首先
-【搭配詞】
-foremost expert 首屈一指的專家
+【搭配词】
+foremost expert 首屈一指的专家
 【例句】
-Dr. Smith is the foremost expert in renewable energy. (史密斯博士是可再生能源領域首屈一指的專家。)"
-Burden,"Burden (n.) 負擔、重擔
-【詞性變化】
+Dr. Smith is the foremost expert in renewable energy. (史密斯博士是可再生能源领域首屈一指的专家。)"
+Burden,"Burden (n.) 负担、重担
+【詞性变化】
 burdensome (adj.) 沉重的
-【搭配詞】
-heavy burden 沉重的負擔
+【搭配词】
+heavy burden 沉重的负担
 【例句】
-High tuition fees pose a heavy financial burden on families. (高額學費對家庭造成了沉重的財務負擔。)"
-Provide,"Provide (v.) 提供、供應
-【詞性變化】
+High tuition fees pose a heavy financial burden on families. (高额学费对家庭造成了沉重的财务负担。)"
+Provide,"Provide (v.) 提供、供应
+【詞性变化】
 provider (n.) 提供者
-【搭配詞】
+【搭配词】
 provide support 提供支援
 【例句】
-The shelter provides food and warmth for homeless people. (庇護所為無家可歸者提供食物與溫暖。)"
-Offspring,"Offspring (n.) 後代、子孫
-【詞性變化】
-spring (n.) 源頭
-【搭配詞】
-produce offspring 繁衍後代
+The shelter provides food and warmth for homeless people. (庇护所为无家可归者提供食物与温暖。)"
+Offspring,"Offspring (n.) 后代、子孙
+【詞性变化】
+spring (n.) 源头
+【搭配词】
+produce offspring 繁衍后代
 【例句】
-Animals instinctively protect their young offspring. (動物本能地保護牠們幼小的後代。)"
-Norin,"Norin (n.) 農林(日語音譯) / Nori (海苔) 之誤拼寫
-【詞性變化】
-norin industry 農林業
-【搭配詞】
-Norin standard 農林標準
+Animals instinctively protect their young offspring. (动物本能地保护牠们幼小的后代。)"
+Norin,"Norin (n.) 农林(日语音译) / Nori (海苔) 之误拼写
+【詞性变化】
+norin industry 农林业
+【搭配词】
+Norin standard 农林标准
 【例句】
-The Norin standard applies to agricultural products. (農林標準適用於農產品。)"
-Fundament,"Fundament (n.) 基礎、根本 (Foundations)
-【詞性變化】
-fundamental (adj.) 基礎的
-【搭配詞】
-solid fundament 堅實基礎
+The Norin standard applies to agricultural products. (农林标准适用于农产品。)"
+Fundament,"Fundament (n.) 基础、根本 (Foundations)
+【詞性变化】
+fundamental (adj.) 基础的
+【搭配词】
+solid fundament 坚实基础
 【例句】
-Honesty is the fundament of trust in relationships. (誠實是人際關係中信任的基礎。)"
-Domestic,"Domestic (adj.) 國內的、家庭的
-【詞性變化】
-domestically (adv.) 在國內
-【搭配詞】
-domestic flight 國內航班
+Honesty is the fundament of trust in relationships. (诚实是人际关系中信任的基础。)"
+Domestic,"Domestic (adj.) 国内的、家庭的
+【詞性变化】
+domestically (adv.) 在国内
+【搭配词】
+domestic flight 国内航班
 【例句】
-Passenger traffic on domestic flights increased this quarter. (本季國內航班的客運量有所增加。)"
-Development,"Development (n.) 發展、開發
-【詞性變化】
-develop (v.) 發展
-【搭配詞】
-economic development 經濟發展
+Passenger traffic on domestic flights increased this quarter. (本季国内航班的客运量有所增加。)"
+Development,"Development (n.) 发展、开发
+【詞性变化】
+develop (v.) 发展
+【搭配词】
+economic development 经济发展
 【例句】
-The city invested heavily in infrastructure development. (該城市在基礎設施建設上投入巨資。)"
-Achieve,"Achieve (v.) 實現、達成
-【詞性變化】
+The city invested heavily in infrastructure development. (该城市在基础设施建设上投入巨资。)"
+Achieve,"Achieve (v.) 实现、达成
+【詞性变化】
 achievement (n.) 成就
-【搭配詞】
-achieve a goal 實現目標
+【搭配词】
+achieve a goal 实现目标
 【例句】
-Through hard work, she managed to achieve her goal. (透過努力，她成功實現了自己的目標。)"
-Career,"Career (n.) 職業生涯、事業
-【詞性變化】
-career path 職業道路
-【搭配詞】
-successful career 成功的事業
+Through hard work, she managed to achieve her goal. (透过努力，她成功实现自己的目标。)"
+Career,"Career (n.) 职业生涯、事业
+【詞性变化】
+career path 职业道路
+【搭配词】
+successful career 成功的事业
 【例句】
-He enjoyed a long and successful career in journalism. (他在新聞界擁有漫長而成功的職業生涯。)"
-Aspiration,"Aspiration (n.) 抱負、渴望
-【詞性變化】
+He enjoyed a long and successful career in journalism. (他在新闻界拥有漫长而成功的职业生涯。)"
+Aspiration,"Aspiration (n.) 抱负、渴望
+【詞性变化】
 aspire (v.) 渴望
-【搭配詞】
-career aspiration 職業抱負
+【搭配词】
+career aspiration 职业抱负
 【例句】
-Her highest aspiration is to become a research scientist. (她最高的抱負是成為一名研究科學家。)"
-Fulfillment,"Fulfillment (n.) 成就感、實現
-【詞性變化】
-fulfill (v.) 實現
-【搭配詞】
+Her highest aspiration is to become a research scientist. (她最高的抱负是成为一名研究科学家。)"
+Fulfillment,"Fulfillment (n.) 成就感、实现
+【詞性变化】
+fulfill (v.) 实现
+【搭配词】
 sense of fulfillment 成就感
 【例句】
-Volunteering brings a deep sense of personal fulfillment. (志工服務帶來深刻的個人成就感。)"
-Duty,"Duty (n.) 職責、義務
-【詞性變化】
-dutiful (adj.) 盡責的
-【搭配詞】
-civic duty 公民義務
+Volunteering brings a deep sense of personal fulfillment. (志工服务带来深刻的个人成就感。)"
+Duty,"Duty (n.) 职责、义务
+【詞性变化】
+dutiful (adj.) 尽责的
+【搭配词】
+civic duty 公民义务
 【例句】
-Voting in elections is an important civic duty. (在選舉中投票是一項重要的公民義務。)"
-Couple,"Couple (n.) 夫妻、一對、幾個
-【詞性變化】
-couple (v.) 連結
-【搭配詞】
-a couple of days 幾天
+Voting in elections is an important civic duty. (在选举中投票是一项重要的公民义务。)"
+Couple,"Couple (n.) 夫妻、一对、几个
+【詞性变化】
+couple (v.) 连结
+【搭配词】
+a couple of days 几天
 【例句】
-The married couple celebrated their 10th anniversary. (這對夫婦慶祝了結婚10週年紀念。)"
-Immense,"Immense (adj.) 巨大的、廣大的
-【詞性變化】
-immensely (adv.) 極其
-【搭配詞】
-immense pressure 巨大的壓力
+The married couple celebrated their 10th anniversary. (这对夫妇庆祝了结婚10周年纪念。)"
+Immense,"Immense (adj.) 巨大的、广大的
+【詞性变化】
+immensely (adv.) 极其
+【搭配词】
+immense pressure 巨大的压力
 【例句】
-The team worked under immense pressure to meet the deadline. (團隊在巨大的壓力下工作以趕上截止日期。)"
-Desire,"Desire (n.) 慾望、渴望
-【詞性變化】
+The team worked under immense pressure to meet the deadline. (团队在巨大的压力下工作以赶上截止日期。)"
+Desire,"Desire (n.) 欲望、渴望
+【詞性变化】
 desirable (adj.) 值得要的
-【搭配詞】
-strong desire 強烈的渴望
+【搭配词】
+strong desire 强烈的渴望
 【例句】
-She expressed a strong desire to learn new skills. (她表達了學習新技能的強烈渴望。)"
+She expressed a strong desire to learn new skills. (她表达了学习新技能的强烈渴望。)"
 `;
 
         // ==========================================
@@ -1654,7 +1679,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
         let learnedCards = 0;     
         let practiceLimit = 0;
         
-        // 移除了 stats 中的 again 屬性
         let stats = { hard: 0, good: 0, easy: 0 };
         let cardHistory = {}; 
         let isModalOpen = false;
@@ -1711,7 +1735,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
                 learnedCards = state.learnedCards || 0;
                 stats = state.stats;
                 
-                // 向下兼容舊資料，如果舊資料有again則忽略，或者確保新欄位存在
                 if(stats.hard === undefined) stats = { hard: 0, good: 0, easy: 0 };
                 
                 practiceLimit = state.practiceLimit;
@@ -1810,7 +1833,7 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             queue = [...deckToUse];
             totalCards = queue.length; 
             learnedCards = 0;          
-            stats = { hard: 0, good: 0, easy: 0 }; // 無 Again
+            stats = { hard: 0, good: 0, easy: 0 }; 
             cardHistory = {};
             
             accumulatedTime = 0;
@@ -1830,11 +1853,11 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             controlsContainer.classList.add('hidden');
             showAnswerText.classList.remove('hidden');
             
-            // --- 新增：隨機設定卡面背景圖 ---
+            // --- 隨機設定卡面背景圖 ---
             const cardFront = document.getElementById('cardFront');
             if (cardFront) {
                 const isMobile = window.innerWidth < 640;
-                const randomNum = Math.floor(Math.random() * 6) + 1; // 隨機抽取 1 到 6
+                const randomNum = Math.floor(Math.random() * 6) + 1; 
                 const prefix = isMobile ? 'bgm' : 'bg';
                 const bgUrl = `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${prefix}${randomNum}.jpeg`;
                 cardFront.style.backgroundImage = `url('${bgUrl}')`;
@@ -1852,16 +1875,22 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             if (mode === 0) {
                 cardFrontText.style.display = 'block';
                 cardFrontText.innerHTML = word;
-                frontSpeakBtn.className = "absolute top-4 right-4 p-3 text-blue-500 hover:bg-blue-50 rounded-full transition-colors z-10";
-                frontSpeakBtn.innerHTML = '<i class="ph-fill ph-speaker-high text-3xl sm:text-4xl"></i>';
+                // 更新為置中且放大
+                frontSpeakBtn.className = "absolute top-1/2 -translate-y-1/2 right-4 sm:right-6 p-3 text-blue-600 hover:bg-white/60 rounded-full transition-all z-10 drop-shadow-md";
+                frontSpeakBtn.innerHTML = '<i class="ph-fill ph-speaker-high text-5xl sm:text-6xl"></i>';
             } else if (mode === 1) {
                 cardFrontText.style.display = 'block';
                 let firstLine = detailsRaw.split('\n').find(line => line.trim() !== '') || '無解釋';
                 const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                let chineseHint = firstLine.replace(new RegExp(escapedWord, 'gi'), '________');
+                
+                // --- 移除底線，改成前後加花朵 ---
+                let hintOnly = firstLine.replace(new RegExp(escapedWord, 'gi'), '').trim();
+                let chineseHint = `🌸 ${hintOnly} 🌸`;
+                // ------------------------------------------
+                
                 cardFrontText.innerHTML = `<span class="text-3xl sm:text-4xl lg:text-5xl text-gray-700 leading-snug font-bold">${chineseHint}</span>`;
-                frontSpeakBtn.className = "absolute top-4 right-4 p-3 text-blue-500 hover:bg-blue-50 rounded-full transition-colors z-10";
-                frontSpeakBtn.innerHTML = '<i class="ph-fill ph-speaker-high text-3xl sm:text-4xl"></i>';
+                frontSpeakBtn.className = "absolute top-1/2 -translate-y-1/2 right-4 sm:right-6 p-3 text-blue-600 hover:bg-white/60 rounded-full transition-all z-10 drop-shadow-md";
+                frontSpeakBtn.innerHTML = '<i class="ph-fill ph-speaker-high text-5xl sm:text-6xl"></i>';              
             } else if (mode === 2) {
                 cardFrontText.style.display = 'none';
                 frontSpeakBtn.className = "absolute inset-0 m-auto w-32 h-32 flex items-center justify-center bg-blue-50 text-blue-500 hover:bg-blue-100 rounded-full transition-transform transform hover:scale-110 shadow-xl z-10";
@@ -1883,7 +1912,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             
             let backHTML = `
                 <div class="flex flex-col sm:flex-row w-full h-full">
-                    <!-- 將原本的 bg-gray-50 改為半透明白，完美融入粉色背景 -->
                     <div class="w-full sm:w-1/2 h-48 sm:h-full shrink-0 bg-white/40 backdrop-blur-sm flex items-center justify-center p-2 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none border-b sm:border-b-0 sm:border-r border-pink-100/50">
                         <img id="dynamicCardImage" 
                              data-word="${word}"
@@ -1914,13 +1942,11 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             backHTML += `</div></div>`;
             cardBackContent.innerHTML = backHTML;
             
-            // 🚀 零時差圖片魔法：直接從本機 IndexedDB 提取圖片
             const imgEl = document.getElementById('dynamicCardImage');
             getImageFromDB(keyword).then(blob => {
                 if (blob) {
-                    imgEl.src = URL.createObjectURL(blob); // 從本機瞬間提取，完全不需要網路！
+                    imgEl.src = URL.createObjectURL(blob); 
                 } else {
-                    // 如果還沒下載完，就回歸網路請求，並依靠 onerror 處理備援
                     imgEl.src = `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.png`;
                 }
             });
@@ -1944,7 +1970,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             }
             const history = cardHistory[word];
             
-            // Rating 1: Hard, Rating 2: Good, Rating 3: Easy
             if (rating === 1) { 
                 stats.hard++;
                 history.hardCount++;
@@ -1969,7 +1994,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
         }
 
         function updateStatsUI() {
-            // 已經移除了 countAgain 欄位
             document.getElementById('countHard').textContent = stats.hard || 0;
             document.getElementById('countGood').textContent = stats.good || 0;
             document.getElementById('countEasy').textContent = stats.easy || 0;
@@ -1983,6 +2007,29 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             history.unshift({ date: dateStr, count: count, time: timeStr });
             if (history.length > 20) history = history.slice(0, 20); 
             localStorage.setItem('eng_flashcards_history', JSON.stringify(history));
+        }
+
+        // 🌸 產生滿天星與櫻花的撒花引擎
+        function fireConfetti() {
+            const emojis = ['🌸', '✨', '🎉', '🎊', '⭐', '🌼'];
+            for (let i = 0; i < 45; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti-piece';
+                    // 隨機抽取圖案
+                    confetti.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                    // 隨機水平位置
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    // 隨機掉落速度與大小
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's'; 
+                    confetti.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // 動畫結束後自動清理 DOM 元素，不佔用資源
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 60); 
+            }
         }
 
         function showCompletion() {
@@ -2006,8 +2053,12 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
                 }
             });
 
+            const completionModal = document.getElementById('completionModal');
             completionModal.classList.remove('hidden');
             completionModal.classList.add('flex');
+            
+            // 觸發撒花特效！
+            fireConfetti();
             
             progressBar.style.width = '100%';
             cardCounter.textContent = `${totalCards} / ${totalCards}`;
@@ -2044,7 +2095,7 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             const history = JSON.parse(localStorage.getItem('eng_flashcards_history') || '[]');
             
             if (history.length === 0) {
-                list.innerHTML = '<div class="text-center text-gray-400 py-6 font-medium">尚無遊玩紀錄<br><span class="text-xs">快去完成一場挑戰吧！</span></div>';
+                list.innerHTML = '<div class="text-center text-gray-400 py-6 font-medium">尚無遊玩紀錄<br><span class="text-xs">快去完成一場挑战吧！</span></div>';
                 return;
             }
             
@@ -2100,10 +2151,8 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
         function loadBackgroundImage() {
             const homeScreen = document.getElementById('homeScreen');
             
-            // 判斷是否為手機螢幕 (寬度小於 640px)
             const isMobile = window.innerWidth < 640;
 
-            // 定義橫式 (平板/桌面) 的圖片備援清單
             const desktopBgUrls = [
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE.jpg',
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/title.jpg',
@@ -2112,7 +2161,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE.PNG'
             ];
 
-            // 定義直式 (手機) 的圖片備援清單
             const mobileBgUrls = [
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE_MOBILE.jpeg',
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE_MOBILE.jpg',
@@ -2120,7 +2168,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
                 'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE_MOBILE.png'
             ];
 
-            // 根據螢幕大小選擇要載入的圖片清單
             const bgUrls = isMobile ? mobileBgUrls : desktopBgUrls;
             
             let currentIdx = 0;
@@ -2133,23 +2180,17 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
             }
             tryNext();
 
-            // 監聽視窗縮放事件，動態切換背景
             window.addEventListener('resize', () => {
                 const newIsMobile = window.innerWidth < 640;
                 if (isMobile !== newIsMobile) {
-                   // 如果跨越了斷點，重新載入背景
                    location.reload(); 
                 }
             });
         }
 
-        // ==========================================
-        // 🚀 初始化大腦與鍵盤綁定
-        // ==========================================
         window.addEventListener('DOMContentLoaded', async () => {
             loadBackgroundImage();
             
-            // 讀取內建字庫
             if (typeof builtInCSV !== 'undefined' && builtInCSV.trim() !== '') {
                 parseCSV(builtInCSV);
             }
@@ -2158,9 +2199,7 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
                 resumeBtn.classList.remove('hidden');
             }
 
-            // 初始化 IndexedDB 並開始無聲無息的下載
             await initDB();
-            // 延遲兩秒開始下載，避免影響首頁動畫順暢度
             setTimeout(() => {
                 downloadAllImagesSilently();
             }, 2000);
@@ -2188,7 +2227,6 @@ She expressed a strong desire to learn new skills. (她表達了學習新技能�
                     if (backBtn) backBtn.click();
                 }
             } else if (isFlipped) {
-                // 鍵盤操作改為 1: Hard, 2: Good, 3: Easy
                 if (e.key === '1') rateCard(1);
                 else if (e.key === '2') rateCard(2);
                 else if (e.key === '3') rateCard(3);
