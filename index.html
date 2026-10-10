@@ -1,0 +1,3762 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小紫的生字旅程</title>
+    
+    <!-- APP 圖示與全螢幕設定 -->
+    <link rel="icon" href="https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/APP%20COVER.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/APP%20COVER.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="生字旅程">
+    <meta name="application-name" content="生字旅程">
+    <meta name="theme-color" content="#c5d0db">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E7%94%9F%E5%AD%97%E6%97%85%E7%A8%8B%22%2C%22short_name%22%3A%22%E7%94%9F%E5%AD%97%E6%97%85%E7%A8%8B%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23c5d0db%22%2C%22theme_color%22%3A%22%23c5d0db%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2FJimmyChau1025%2FENG_IMAGES%2Fmain%2FAPP%2520COVER.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2FJimmyChau1025%2FENG_IMAGES%2Fmain%2FAPP%2520COVER.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+
+    <!-- 引入 Tailwind CSS 框架 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Phosphor Icons 圖示庫 -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .card-transition { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
+        .progress-transition { transition: width 0.3s ease-in-out; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .btn-press { transition: transform 0.1s, box-shadow 0.1s; }
+        .btn-press:active { transform: translateY(4px); box-shadow: 0 0px 0 transparent; }
+
+        /* 卡底動態背景動畫 */
+        @keyframes floatShape {
+            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.7; }
+            80% { opacity: 0.7; }
+            100% { transform: translateY(-400px) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+        /* 星星專屬閃爍動畫 */
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.3; transform: scale(0.8) rotate(15deg); }
+        }
+        .animate-twinkle { animation: twinkle 1.5s ease-in-out infinite; }
+        .animate-twinkle-delayed { animation: twinkle 1.5s ease-in-out infinite; animation-delay: 0.7s; }
+        .floating-shape {
+            position: absolute;
+            bottom: -60px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; 
+            animation: floatShape infinite linear;
+            pointer-events: none;
+        }
+        .shape-1 { width: 60px; height: 60px; left: 10%; animation-duration: 8s; animation-delay: 0s; }
+        .shape-2 { width: 40px; height: 40px; left: 30%; animation-duration: 6s; animation-delay: 2s; }
+        .shape-3 { width: 80px; height: 80px; left: 60%; animation-duration: 10s; animation-delay: 1s; }
+        .shape-4 { width: 30px; height: 30px; left: 80%; animation-duration: 7s; animation-delay: 3s; }
+        .shape-5 { width: 50px; height: 50px; left: 45%; animation-duration: 9s; animation-delay: 4s; }
+        
+        /* 結算卡片 Q 彈彈出動畫 */
+        @keyframes popInBounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in { animation: popInBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        /* 全螢幕撒花掉落動畫 */
+        @keyframes confettiFall {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) translateX(20px) rotate(720deg); opacity: 0; }
+        }
+        .confetti-piece {
+            position: fixed;
+            top: -10%;
+            z-index: 9999;
+            pointer-events: none;
+            animation: confettiFall 3s linear forwards;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen bg-gray-50 flex flex-col items-center p-2 sm:p-4 overflow-hidden font-sans text-gray-800">
+    
+    <!-- Home Screen (首頁開始畫面) - 橫向佈局 -->
+    <div id="homeScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-end pb-8 sm:pb-12 bg-cover bg-center bg-no-repeat transition-opacity duration-700 bg-[#c5d0db]">
+        <div class="bg-white/30 backdrop-blur-md p-5 sm:p-6 rounded-2xl flex flex-row flex-wrap justify-center gap-4 shadow-2xl border border-white/40 w-11/12 max-w-4xl mt-auto">
+            <button id="resumeBtn" onclick="loadSession()" class="hidden flex-1 min-w-[160px] btn-press bg-[#10B981]/90 hover:bg-[#10B981] text-white font-bold py-3 px-4 rounded-xl shadow-[0_4px_0_#047857] text-lg whitespace-nowrap">
+                ✨ 繼續上次進度
+            </button>
+            <button onclick="startGame(30)" class="flex-1 min-w-[160px] btn-press bg-[#FCD34D]/95 hover:bg-[#FCD34D] text-[#78350F] font-bold py-3 px-4 rounded-xl shadow-[0_4px_0_#B45309] text-lg whitespace-nowrap">
+                小菜一碟 (30)
+            </button>
+            <button onclick="startGame(60)" class="flex-1 min-w-[160px] btn-press bg-[#64748B]/95 hover:bg-[#64748B] text-white font-bold py-3 px-4 rounded-xl shadow-[0_4px_0_#334155] text-lg whitespace-nowrap">
+                大戰一百回合 (60)
+            </button>
+            <button onclick="startGame(100)" class="flex-1 min-w-[160px] btn-press bg-[#8B5CF6]/95 hover:bg-[#8B5CF6] text-white font-bold py-3 px-4 rounded-xl shadow-[0_4px_0_#5B21B6] text-lg whitespace-nowrap">
+                準備掉手掣 (100)
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App Interface -->
+    <div id="appContainer" class="w-full max-w-6xl hidden flex-col gap-3 h-full pb-2">
+        
+        <!-- 一體化頂部資訊欄 -->
+        <div class="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border border-gray-100 shrink-0">
+            <div class="flex flex-col gap-1 w-1/3 pl-2">
+                <div class="text-xs font-bold text-gray-500" id="cardCounter">0 / 0</div>
+                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-blue-500 progress-transition" style="width: 0%;"></div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-bold">
+                <div class="text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 flex gap-1 items-center"><i class="ph-fill ph-warning-circle hidden sm:block"></i><span id="countHard">0</span></div>
+                <div class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 flex gap-1 items-center"><i class="ph-fill ph-check-circle hidden sm:block"></i><span id="countGood">0</span></div>
+                <div class="text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 flex gap-1 items-center"><i class="ph-fill ph-star hidden sm:block"></i><span id="countEasy">0</span></div>
+            </div>
+            
+            <div class="flex items-center gap-1">
+                <button id="historyBtn" class="p-2 text-gray-500 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 rounded-lg transition-colors" title="遊玩紀錄">
+                    <i class="ph-bold ph-clock-counter-clockwise text-lg sm:text-xl"></i>
+                </button>
+                <button id="infoBtn" class="p-2 text-gray-500 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 rounded-lg transition-colors" title="快速鍵說明">
+                    <i class="ph-bold ph-info text-lg sm:text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Flashcard Area (自適應彈性高度) -->
+        <div class="flex-1 relative w-full perspective-1000 min-h-0">
+            <div id="flashcard" class="absolute inset-0 w-full h-full transform-style-3d card-transition cursor-pointer shadow-xl rounded-2xl">
+                
+                <!-- 卡片正面 -->
+                <div id="cardFront" class="absolute inset-0 bg-white rounded-2xl backface-hidden flex flex-col items-center justify-center p-4 border-2 border-gray-100 bg-cover bg-center bg-no-repeat transition-all duration-300">
+                    <div class="absolute inset-0 bg-white/60 rounded-2xl"></div>
+                    
+                    <!-- 新增：左上角的閃動星星 -->
+                    <div class="absolute top-[18%] left-[12%] text-yellow-400 animate-twinkle z-10 drop-shadow-sm pointer-events-none">
+                        <i class="ph-fill ph-star text-4xl sm:text-5xl"></i>
+                    </div>
+                    
+                    <!-- 新增：右下角的閃動星星 (帶有延遲效果，讓兩顆星星交錯閃爍) -->
+                    <div class="absolute bottom-[22%] right-[12%] text-yellow-400 animate-twinkle-delayed z-10 drop-shadow-sm pointer-events-none">
+                        <i class="ph-fill ph-star text-4xl sm:text-5xl"></i>
+                    </div>
+
+                    <!-- 初始化的發音按鈕 -->
+                    <button id="frontSpeakBtn" class="absolute top-auto bottom-20 right-2 sm:top-1/2 sm:-translate-y-1/2 sm:bottom-auto sm:right-6 p-3 text-blue-600 hover:bg-white/60 rounded-full transition-all z-50 drop-shadow-md cursor-pointer">
+                        <i class="ph-fill ph-speaker-high text-5xl sm:text-6xl"></i>
+                    </button>
+                    
+                    <div id="cardFrontText" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 text-center break-words w-full px-4 z-10 drop-shadow-[0_2px_2px_rgba(255,255,255,0.8)]">
+                        載入中...
+                    </div>
+                    <div class="absolute bottom-4 text-gray-800 bg-white/80 px-4 py-1.5 rounded-full shadow-sm text-sm font-bold flex items-center gap-2 z-10">
+                        <i class="ph-bold ph-hand-tap"></i> 點擊卡片翻面 (或按 Space)
+                    </div>
+                </div>
+                
+                <!-- 卡片背面 (粉色動態背景) -->
+                <div class="absolute inset-0 bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100 rounded-2xl backface-hidden rotate-y-180 flex flex-col border-2 border-pink-200 overflow-hidden">
+                    
+                    <!-- 動態漂浮圖案 -->
+                    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                        <div class="floating-shape shape-1"></div>
+                        <div class="floating-shape shape-2"></div>
+                        <div class="floating-shape shape-3"></div>
+                        <div class="floating-shape shape-4"></div>
+                        <div class="floating-shape shape-5"></div>
+                    </div>
+
+                    <div id="cardBackContent" class="w-full h-full relative z-10 flex flex-col">
+                        <!-- 內容將由 JavaScript 動態注入 (會套用自適應排版) -->
+                    </div>
+                    
+                    <!-- 朗讀例句按鈕 (加大並加入漸層效果) -->
+                    <button id="backSpeakBtn" class="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 p-4 sm:p-5 bg-gradient-to-br from-rose-400 to-pink-500 text-white rounded-full shadow-xl hover:from-rose-500 hover:to-pink-600 hover:scale-110 hover:shadow-2xl transition-all duration-300 z-50 flex items-center justify-center cursor-pointer">
+                        <i class="ph-fill ph-speaker-high text-3xl sm:text-4xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制按鈕 -->
+        <div id="controlsContainer" class="w-full flex gap-2 sm:gap-3 shrink-0 hidden">
+            <button onclick="rateCard(1)" class="flex-1 btn-press bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 sm:py-3 rounded-xl shadow-[0_4px_0_#9A3412] text-sm sm:text-lg tracking-wider">
+                Hard
+            </button>
+            <button onclick="rateCard(2)" class="flex-1 btn-press bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 sm:py-3 rounded-xl shadow-[0_4px_0_#065F46] text-sm sm:text-lg tracking-wider">
+                Good
+            </button>
+            <button onclick="rateCard(3)" class="flex-1 btn-press bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 sm:py-3 rounded-xl shadow-[0_4px_0_#1E40AF] text-sm sm:text-lg tracking-wider">
+                Easy
+            </button>
+        </div>
+        
+        <div id="showAnswerText" class="text-center text-gray-400 text-sm font-medium shrink-0">
+            按下 <kbd class="px-2 py-1 bg-gray-200 text-gray-600 rounded shadow-sm">Space</kbd> 顯示答案
+        </div>
+    </div>
+
+    <!-- 遊玩紀錄 Modal -->
+    <div id="historyModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity">
+        <div class="bg-white p-6 rounded-2xl w-11/12 max-w-md shadow-2xl transform scale-95 transition-transform flex flex-col max-h-[80vh]" id="historyModalContent">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <i class="ph-fill ph-clock-counter-clockwise text-blue-500"></i> 遊玩紀錄 <span class="text-sm text-gray-400 font-normal">(近20次)</span>
+                </h3>
+                <button onclick="closeHistory()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div id="historyList" class="flex-1 overflow-y-auto space-y-3 pr-1 hide-scrollbar">
+            </div>
+        </div>
+    </div>
+
+    <!-- 快捷鍵說明 Modal -->
+    <div id="infoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity">
+        <div class="bg-white p-6 rounded-2xl w-11/12 max-w-md shadow-2xl transform scale-95 transition-transform" id="infoModalContent">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="ph-fill ph-keyboard text-blue-500"></i> 快捷鍵與複習機制
+            </h3>
+            <ul class="space-y-3 text-sm text-gray-600 font-medium">
+                <li class="flex items-center justify-between"><span class="bg-gray-100 px-2 py-1 rounded border shadow-sm font-bold">Space</span> <span>翻轉卡片</span></li>
+                <li class="flex items-center justify-between"><span class="bg-gray-100 px-2 py-1 rounded border shadow-sm font-bold">Enter</span> <span>朗讀發音</span></li>
+                <hr class="my-3 border-gray-100">
+                <li class="flex items-center justify-between"><span class="bg-orange-50 text-orange-600 border-orange-200 px-2 py-1 rounded border font-bold">1 (Hard)</span> <span>插回中間位置 <span class="text-xs text-orange-400">(進度暫停)</span></span></li>
+                <li class="flex items-center justify-between"><span class="bg-emerald-50 text-emerald-600 border-emerald-200 px-2 py-1 rounded border font-bold">2 (Good)</span> <span>學會了！移出佇列 <span class="text-xs text-emerald-500">(進度+1)</span></span></li>
+                <li class="flex items-center justify-between"><span class="bg-blue-50 text-blue-600 border-blue-200 px-2 py-1 rounded border font-bold">3 (Easy)</span> <span>太簡單！移出佇列 <span class="text-xs text-blue-500">(進度+1)</span></span></li>
+                <hr class="my-3 border-gray-100">
+                <li class="text-center text-xs text-blue-500 font-bold">✨ 當所有單字都移出佇列時，挑戰即算完成！</li>
+            </ul>
+            <button onclick="closeInfo()" class="mt-6 w-full py-3 bg-gray-800 text-white rounded-xl font-bold text-base hover:bg-gray-900 transition shadow-lg">了解！</button>
+        </div>
+    </div>
+
+    <!-- 完成練習 Modal -->
+    <div id="completionModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-white/95 backdrop-blur-md">
+        <div class="animate-pop-in text-center flex flex-col items-center bg-white p-6 sm:p-8 rounded-3xl shadow-2xl border-2 border-emerald-100 max-w-md w-11/12 relative z-50">
+            <img id="endgameImage" alt="End Game" class="w-full h-auto object-cover rounded-2xl mb-5 shadow-md aspect-video border border-gray-100">
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-2">挑戰完成！</h2>
+            <p class="text-gray-500 mb-4 font-medium">太棒了，你已徹底征服本次的單字！</p>
+            <div class="bg-emerald-50 text-emerald-700 px-5 py-3 rounded-xl font-bold text-lg mb-6 flex items-center gap-2 shadow-sm border border-emerald-100">
+                <i class="ph-fill ph-timer text-2xl"></i> 總花費時間：<span id="timeSpentText" class="text-xl">0分0秒</span>
+            </div>
+            <button onclick="location.reload()" class="w-full btn-press bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-[0_4px_0_#1D4ED8] text-xl tracking-wide">
+                返回主畫面
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+
+        // ==========================================
+        // 🚀 核心技術：IndexedDB 背景安裝引擎 (零時差圖片)
+        // ==========================================
+        let db;
+        function initDB() {
+            return new Promise((resolve) => {
+                const req = indexedDB.open('EngFlashcardsDB', 1);
+                req.onupgradeneeded = (e) => {
+                    if (!e.target.result.objectStoreNames.contains('images')) {
+                        e.target.result.createObjectStore('images');
+                    }
+                };
+                req.onsuccess = (e) => { db = e.target.result; resolve(true); };
+                req.onerror = () => { console.warn('IndexedDB failed'); resolve(false); };
+            });
+        }
+
+        function saveImageToDB(key, blob) {
+            if (!db) return;
+            try {
+                const tx = db.transaction('images', 'readwrite');
+                tx.objectStore('images').put(blob, key);
+            } catch(e) {}
+        }
+
+        function getImageFromDB(key) {
+            return new Promise((resolve) => {
+                if (!db) return resolve(null);
+                try {
+                    const tx = db.transaction('images', 'readonly');
+                    const req = tx.objectStore('images').get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(null);
+                } catch(e) { resolve(null); }
+            });
+        }
+
+        async function downloadAllImagesSilently() {
+            if (!fullDeck || fullDeck.length === 0) return;
+
+            const indicator = document.createElement('div');
+            indicator.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full shadow-md z-50 flex items-center gap-2 border border-blue-100 transition-opacity duration-500';
+            indicator.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> <span id="dlProgress">正在將圖庫安裝至本機 0%</span>';
+            document.body.appendChild(indicator);
+
+            let downloaded = 0;
+            const total = fullDeck.length + 1; 
+
+            const fetchAndSave = async (keyword, urls) => {
+                const exists = await getImageFromDB(keyword);
+                if (exists) return true; 
+
+                for (const url of urls) {
+                    try {
+                        const res = await fetch(url);
+                        if (res.ok) {
+                            const blob = await res.blob();
+                            saveImageToDB(keyword, blob);
+                            return true;
+                        }
+                    } catch(e) {}
+                }
+                return false;
+            };
+
+            await fetchAndSave('ENDGAME', [
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/ENDGAME.jpeg',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/ENDGAME.png',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/ENDGAME.jpg'
+            ]);
+            downloaded++;
+
+            for (const card of fullDeck) {
+                const word = card[0];
+                const trimmed = word.trim();
+                const keyword = encodeURIComponent(trimmed);
+                const lowerKeyword = encodeURIComponent(trimmed.toLowerCase());
+
+                const urls = [
+                    `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.png`,
+                    `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.jpeg`,
+                    `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.jpg`,
+                    `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${lowerKeyword}.png`,
+                    `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${lowerKeyword}.jpg`
+                ];
+
+                await fetchAndSave(keyword, urls);
+                downloaded++;
+                const pct = Math.floor((downloaded / total) * 100);
+                document.getElementById('dlProgress').textContent = `正在將圖庫安裝至本機 ${pct}%`;
+            }
+
+            indicator.innerHTML = '<i class="ph-fill ph-check-circle text-emerald-500 text-lg"></i> <span class="text-emerald-700">圖庫已成功安裝至本機！</span>';
+            setTimeout(() => {
+                indicator.classList.add('opacity-0');
+                setTimeout(() => indicator.remove(), 500);
+            }, 3000);
+        }
+
+        function handleImageError(img) {
+            const cleanWord = img.dataset.word;
+            if (!cleanWord) {
+                img.style.display = 'none'; return;
+            }
+            const trimmed = cleanWord.trim();
+            const keyword = encodeURIComponent(trimmed);
+            const lowerKeyword = encodeURIComponent(trimmed.toLowerCase());
+            
+            const rawUrls = [
+                `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.jpeg`,
+                `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.png`,
+                `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.jpg`,
+                `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${lowerKeyword}.jpeg`,
+                `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${lowerKeyword}.png`,
+                `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${lowerKeyword}.jpg`
+            ];
+            
+            const urls = [...new Set(rawUrls)];
+            let idx = parseInt(img.dataset.fallbackIndex || '0');
+            idx++;
+            
+            if (idx < urls.length) {
+                img.dataset.fallbackIndex = idx;
+                img.src = urls[idx];
+            } else {
+                img.style.display = 'none';
+            }
+        }
+
+        // ==========================================
+        // 🍎 您的專屬字庫 
+        // ==========================================
+        const builtInCSV = `
+正面,背面
+Practical,"Practical (adj.) 實用的、實際的
+【詞性變化】
+practically (adv.) 實際上
+【搭配詞】
+practical experience 實務經驗
+【例句】
+She gained practical experience during her internship. (她在實習期間獲得了實務經驗。)"
+Associate,"Associate (v.) 把…聯繫在一起、聯想
+【詞性變化】
+associate (n.) 夥伴、同事
+【搭配詞】
+associate with this project 聯繫到這計劃中
+【例句】
+Only close friends and associates were invited. (僅邀請了親密的朋友和同事。)"
+Potential,"Potential (n.) 潛力、潛能
+【詞性變化】
+potential (adj.) 潛在的
+【搭配詞】
+potential threat 潛在威脅
+【例句】
+The new technology has great potential for development. (這項新技術具有巨大的發展潛力。)"
+Claim,"Claim (v.) 宣稱、主張、索賠
+【詞性變化】
+claim (n.) 聲明、索賠
+【搭配詞】
+claim damages 索賠損失
+【例句】
+He claimed to have seen the missing document. (他宣稱見到了失蹤的文件。)"
+Annual,"Annual (adj.) 每年的、年度的
+【詞性變化】
+annually (adv.) 每年地
+【搭配詞】
+annual report 年度報告
+【例句】
+The company held its annual meeting yesterday. (公司昨天舉行了年度會議。)"
+Irreversible,"Irreversible (adj.) 不可逆轉的、不可撤銷的
+【詞性變化】
+irreversibly (adv.) 不可逆轉地
+【搭配詞】
+irreversible damage 不可逆轉的損害
+【例句】
+Smoking can cause irreversible damage to lungs. (吸菸會對肺部造成不可逆轉的損害。)"
+Steadily,"Steadily (adv.) 穩定地、持續地
+【詞性變化】
+steady (adj.) 穩定的
+【搭配詞】
+increase steadily 穩定增長
+【例句】
+Prices have risen steadily over the past year. (過去一年價格穩定上升。)"
+Assemble,"Assemble (v.) 組裝、聚集
+【詞性變化】
+assembly (n.) 集會、組裝
+【搭配詞】
+assemble furniture 組裝家具
+【例句】
+All employees assembled in the main hall. (所有員工聚集在大廳。)"
+Shrink,"Shrink (v.) 縮小、縮水
+【詞性變化】
+shrinkage (n.) 縮減
+【搭配詞】
+shrink in size 尺寸縮小
+【例句】
+The wool sweater shrank after being washed. (羊毛衫洗後縮水了。)"
+Sorrowful,"Sorrowful (adj.) 悲傷的、悲哀的
+【詞性變化】
+sorrow (n.) 悲傷
+【搭配詞】
+sorrowful look 悲傷的神情
+【例句】
+She gave a sorrowful sigh after hearing the news. (聽到消息後，她發發出一聲悲傷的嘆息。)"
+Creature,"Creature (n.) 生物、動物
+【詞性變化】
+create (v.) 創造
+【搭配詞】
+living creature 生物
+【例句】
+Deep-sea creatures adapt to extreme pressure. (深海生物適應了極高壓力。)"
+Refurbish,"Refurbish (v.) 整修、翻新
+【詞性變化】
+refurbishment (n.) 翻新整修
+【搭配詞】
+refurbish the office 翻新辦公室
+【例句】
+They plan to refurbish the old hotel next month. (他們計劃下個月整修舊飯店。)"
+Discrimination,"Discrimination (n.) 歧視、辨別力
+【詞性變化】
+discriminate (v.) 歧視、區分
+【搭配詞】
+racial discrimination 種族歧視
+【例句】
+The law prohibits discrimination based on gender. (法律禁止基於性別的歧視。)"
+Exposure,"Exposure (n.) 暴露、曝光、接觸
+【詞性變化】
+expose (v.) 暴露
+【搭配詞】
+exposure to sunlight 暴露於陽光下
+【例句】
+Prolonged exposure to heat causes fatigue. (長時間暴露在高溫下會導致疲勞。)"
+Perception,"Perception (n.) 感知、觀念、看法
+【詞性變化】
+perceive (v.) 感知
+【搭配詞】
+public perception 公眾看法
+【例句】
+His perception of the problem was accurate. (他對問題的看法很準確。)"
+Preception,"Preception (n.) 先入之見、預感 (註：常作為 perception 的誤用)
+【詞性變化】
+precept (n.) 規範、準則
+【搭配詞】
+preception bias 預感偏見
+【例句】
+He held a preception before reviewing the facts. (他在審視事實前存有先入之見。)"
+Defence,"Defence (n.) 防衛、辯護
+【詞性變化】
+defend (v.) 保衛
+【搭配詞】
+in defence of... 為…辯護
+【例句】
+The castle was built as a defence against enemy attacks. (這座城堡是用於防禦敵人攻擊的。)"
+Perpetrator,"Perpetrator (n.) 加害者、犯罪者
+【詞性變化】
+perpetrate (v.) 犯下(罪行)
+【搭配詞】
+perpetrator of the crime 犯罪加害者
+【例句】
+The perpetrator was caught by the police shortly after. (加害者不久後被警方逮捕。)"
+Disconcert,"Disconcert (v.) 使不安、使困惑
+【詞性變化】
+disconcerting (adj.) 令人不安的
+【搭配詞】
+disconcert someone 使某人感到不安
+【例句】
+Her sudden change of attitude disconcerted everyone. (她態度的突然轉變讓大家感到困惑。)"
+Settle,"Settle (v.) 解決、定居、安頓
+【詞性變化】
+settlement (n.) 定居點、和解
+【搭配詞】
+settle a dispute 解決糾紛
+【例句】
+They decided to settle down in a quiet village. (他們决定在安静的村庄定居。)"
+Caution,"Caution (n.) 謹慎、警告
+【詞性變化】
+cautious (adj.) 小心的
+【搭配詞】
+exercise caution 保持謹慎
+【例句】
+Proceed with caution when driving on ice. (在冰上駕駛時請保持謹慎。)"
+Mess,"Mess (n.) 混亂、髒亂
+【詞性變化】
+messy (adj.) 雜亂的
+【搭配詞】
+make a mess 搞得一團亂
+【例句】
+The children left a huge mess in the living room. (孩子們在客廳留下了巨大的混亂。)"
+Severe,"Severe (adj.) 嚴重的、嚴厲的
+【詞性變化】
+severely (adv.) 嚴重地
+【搭配詞】
+severe weather 惡劣天氣
+【例句】
+The storm caused severe damage to the coastal roads. (暴風雨對海岸道路造成了嚴重損壞。)"
+Saliva,"Saliva (n.) 唾液、口水
+【詞性變化】
+salivary (adj.) 唾液的
+【搭配詞】
+saliva sample 唾液樣本
+【例句】
+Saliva plays an important role in digestion. (唾液在消化過程中扮演重要角色。)"
+Surge,"Surge (n.) 激增、湧動
+【詞性變化】
+surge (v.) 劇增
+【搭配詞】
+a surge in demand 需求激增
+【例句】
+There was a sudden surge in online shopping sales. (網購銷售額突然激增。)"
+Access,"Access (n.) 進入許可、使用權
+【詞性變化】
+accessible (adj.) 可獲得的
+【搭配詞】
+have access to... 有權使用…
+【例句】
+Students have free access to the university library. (學生可免費使用大學圖書館。)"
+Variety,"Variety (n.) 各式各樣、品種
+【詞性變化】
+various (adj.) 多樣的
+【搭配詞】
+a wide variety of... 種種不同的
+【例句】
+The shop offers a wide variety of fresh fruits. (該店家提供種類繁多的新鮮水果。)"
+Graphic,"Graphic (adj.) 圖解的、生動的
+【詞性變化】
+graph (n.) 圖表
+【搭配詞】
+graphic design 平面設計
+【例句】
+She works as a graphic designer for an agency. (她在一家代理商擔任平面設計師。)"
+Reconnect,"Reconnect (v.) 重新連接、重新建立關係
+【詞性變化】
+reconnection (n.) 重連
+【搭配詞】
+reconnect with old friends 與老友重聚
+【例句】
+Social media helps people reconnect with classmates. (社群媒體幫助人們與同學重新聯繫。)"
+Require,"Require (v.) 需要、要求
+【詞性變化】
+requirement (n.) 要求
+【搭配詞】
+require immediate attention 需要立即處理
+【例句】
+This task requires high concentration. (這項任務需要高度集中注意力。)"
+Predict,"Predict (v.) 預測、預言
+【詞性變化】
+prediction (n.) 預測
+【搭配詞】
+predict future trends 預測未來趨勢
+【例句】
+Scientists try to predict earthquake occurrences. (科學家試圖預測地震的發生。)"
+Anticipate,"Anticipate (v.) 預期、期望
+【詞性變化】
+anticipation (n.) 期盼
+【搭配詞】
+anticipate problems 預料問題
+【例句】
+We anticipate a significant increase in sales. (我們預期銷售額將大幅增長。)"
+Qualify,"Qualify (v.) 取得資格、符合條件
+【詞性變化】
+qualification (n.) 資格
+【搭配詞】
+qualify for the finals 晉級決賽
+【例句】
+She qualified for the national championship. (她獲得了參加全國錦標賽的資格。)"
+Stimulate,"Stimulate (v.) 刺激、促進
+【詞性變化】
+stimulation (n.) 刺激
+【搭配詞】
+stimulate economic growth 刺激經濟增長
+【例句】
+Tax cuts were introduced to stimulate the economy. (實施減稅政策旨在刺激經濟。)"
+Genuine,"Genuine (adj.) 真誠的、真正的
+【詞性變化】
+genuinely (adv.) 真誠地
+【搭配詞】
+genuine interest 真心的興趣
+【例句】
+He showed a genuine desire to help others. (他展現出了幫助他人的真誠意願。)"
+Cozy,"Cozy (adj.) 舒適溫馨的
+【詞性變化】
+coziness (n.) 溫馨
+【搭配詞】
+cozy atmosphere 溫馨的氛圍
+【例句】
+The fireplace gave the room a cozy feel. (壁爐讓房間帶來溫馨的感覺。)"
+Reign,"Reign (v.) 統治、支配
+【詞性變化】
+reign (n.) 統治時期
+【搭配詞】
+reign over the Kingdom 統治王國
+【例句】
+Queen Victoria reigned over Britain for over 60 years. (維多利亞女王統治英國長達60多年。)"
+Vague,"Vague (adj.) 模糊的、不明確的
+【詞性變化】
+vaguely (adv.) 模糊地
+【搭配詞】
+vague answer 模糊的回答
+【例句】
+He gave a vague response to the reporter's question. (他對記者的提問給出了模糊的回答。)"
+Ultimately,"Ultimately (adv.) 最終、根本上
+【詞性變化】
+ultimate (adj.) 最終的
+【搭配詞】
+ultimately lead to... 最終導致…
+【例句】
+Hard work will ultimately bring success. (努力最終會帶來成功。)"
+Secure,"Secure (v.) 獲得、確保、安全
+【詞性變化】
+security (n.) 安全
+【搭配詞】
+secure a job 獲得工作
+【例句】
+She managed to secure a seat on the last flight. (她成功訂到了最後一班航班的座位。)"
+Standard,"Standard (n.) 標準、規範
+【詞性變化】
+standardize (v.) 標準化
+【搭配詞】
+high standard 高標準
+【例句】
+The hotel strives to maintain high quality standards. (該飯店努力維持高品質標準。)"
+Property,"Property (n.) 財產、房產、特性
+【詞性變化】
+proprietary (adj.) 專有的
+【搭配詞】
+private property 私人財產
+【例句】
+The police protected private property during the event. (警方向活動期間保護私人財產。)"
+Security,"Security (n.) 安全、保全
+【詞性變化】
+secure (adj.) 安全的
+【搭配詞】
+security measure 安全措施
+【例句】
+Airport security has been upgraded recently. (機場安檢近期已進行升級。)"
+Violate,"Violate (v.) 違反、侵犯
+【詞性變化】
+violation (n.) 違反
+【搭配詞】
+violate regulations 違反規定
+【例句】
+Drivers who violate traffic rules will be fined. (違反交通規則的駕駛將被處以罰款。)"
+Graffiti,"Graffiti (n.) 塗鴉
+【詞性變化】
+graffiti artist 塗鴉藝術家
+【搭配詞】
+spray graffiti 噴塗塗鴉
+【例句】
+Street artists painted colorful graffiti on the wall. (街頭藝術家在牆上畫了色彩繽紛的塗鴉。)"
+Culture,"Culture (n.) 文化、培養
+【詞性變化】
+cultural (adj.) 文化的
+【搭配詞】
+pop culture 大眾文化
+【例句】
+Learning a foreign language expands cultural horizons. (學習外語能開闊文化視野。)"
+Boycott,"Boycott (v.) 抵制、聯合抵制
+【詞性變化】
+boycott (n.) 抵制行動
+【搭配詞】
+boycott products 抵制產品
+【例句】
+Consumers decided to boycott companies that pollute. (消費者決定抵制造成污染的公司。)"
+Financial,"Financial (adj.) 金融的、財務的
+【詞性變化】
+finance (n.) 財政
+【搭配詞】
+financial support 財務支援
+【例句】
+The business received financial support from investors. (該企業獲得了投資人的財務支援。)"
+Tan,"Tan (v.) 曬黑、曬太陽
+【詞性變化】
+suntan (n.) 曬黑的膚色
+【搭配詞】
+get a tan 曬黑
+【例句】
+She loves to lie on the beach and get a tan. (她喜歡躺在沙灘上曬黑。)"
+Endorphin,"Endorphin (n.) 腦內啡
+【詞性變化】
+endorphin release 腦內啡釋放
+【搭配詞】
+release endorphins 釋放腦內啡
+【例句】
+Exercise stimulates the brain to release endorphins. (運動能刺激大腦釋放腦內啡。)"
+Residence,"Residence (n.) 住宅、居住地
+【詞性變化】
+resident (n.) 居民
+【搭配詞】
+official residence 官邸
+【例句】
+The palace served as the royal residence for centuries. (這座宮殿數世紀來一直是皇家住宅。)"
+Longevity,"Longevity (n.) 長壽、壽命
+【詞性變化】
+long (adj.) 長期的
+【搭配詞】
+promote longevity 促進長壽
+【例句】
+A balanced diet contributes to healthy longevity. (均衡飲食有助於健康長壽。)"
+Centenarian,"Centenarian (n.) 百歲人瑞
+【詞性變化】
+century (n.) 世紀
+【搭配詞】
+active centenarian 活躍的百歲老人
+【例句】
+The local village celebrated a centenarian's birthday. (當地村莊慶祝了一位百歲老人的生日。)"
+Traditional,"Traditional (adj.) 傳統的
+【詞性變化】
+tradition (n.) 傳統
+【搭配詞】
+traditional custom 傳統習俗
+【例句】
+People wear traditional clothes during the festival. (人們在節日期間穿著傳統服飾。)"
+Factors,"Factors (n.) 因素、要素 (factor 的複數)
+【詞性變化】
+factor (v.) 納入因素
+【搭配詞】
+key factors 關鍵因素
+【例句】
+Cost and location are key factors when buying a house. (成本和地點是購屋時的關鍵因素。)"
+Bold,"Bold (adj.) 大膽的、粗體的
+【詞性變化】
+boldness (n.) 大膽
+【搭配詞】
+bold decision 大膽的決定
+【例句】
+It was a bold move to start his own business. (自主創業是一個大膽的舉動。)"
+Sculpture,"Sculpture (n.) 雕塑、雕像
+【詞性變化】
+sculptor (n.) 雕刻家
+【搭配詞】
+marble sculpture 大理石雕像
+【例句】
+The museum displays ancient bronze sculptures. (該博物館展示古代青銅雕塑。)"
+Miserable,"Miserable (adj.) 痛苦的、悲慘的
+【詞性變化】
+misery (n.) 苦難
+【搭配詞】
+miserable weather 陰慘的天氣
+【例句】
+He felt miserable after catching a severe cold. (他在重感冒後感到非常痛苦。)"
+Pessimistic,"Pessimistic (adj.) 悲觀的
+【詞性變化】
+pessimism (n.) 悲觀主義
+【搭配詞】
+pessimistic outlook 悲觀的展望
+【例句】
+She holds a pessimistic view about the economy. (她對經濟持悲觀態度。)"
+Overall,"Overall (adj.) 整體的、總體的
+【詞性變化】
+overall (adv.) 整體而言
+【搭配詞】
+overall strategy 整體策略
+【例句】
+The overall performance of the team was satisfactory. (團隊的整體表現令人滿意。)"
+Tangible,"Tangible (adj.) 有形的、可觸摸的
+【詞性變化】
+tangibly (adv.) 有形地
+【搭配詞】
+tangible benefits 實質的好處/有形益處
+【例句】
+The policy brought tangible results within months. (這項政策在數月內帶來了實質成果。)"
+Intangible,"Intangible (adj.) 無形的、不可觸摸的
+【詞性變化】
+intangibility (n.) 無形性
+【搭配詞】
+intangible assets 無形資產
+【例句】
+Brand reputation is an invaluable intangible asset. (品牌聲譽是無價的無形資產。)"
+Independence,"Independence (n.) 獨立、自主
+【詞性變化】
+independent (adj.) 獨立的
+【搭配詞】
+gain independence 贏得獨立
+【例句】
+The colony gained independence in the 20th century. (該殖民地於20世紀獲得獨立。)"
+Acknowledge,"Acknowledge (v.) 承認、致謝
+【詞性變化】
+acknowledgement (n.) 承認
+【搭配詞】
+acknowledge receipt 奉覆收到
+【例句】
+He acknowledged his mistake and apologized promptly. (他承認了自己的錯誤並立即道歉。)"
+Faithfulness,"Faithfulness (n.) 忠誠、守信
+【詞性變化】
+faithful (adj.) 忠實的
+【搭配詞】
+marital faithfulness 婚姻忠誠
+【例句】
+Dogs are known for their faithfulness to owners. (狗以對主人的忠誠而聞名。)"
+Gem,"Gem (n.) 寶石、極好的人或事物
+【詞性變化】
+gemstone (n.) 寶石
+【搭配詞】
+hidden gem 隱藏的寶藏/景點
+【例句】
+The small restaurant is a hidden gem in town. (這家小餐廳是鎮上隱藏的寶藏之地。)"
+Emphasize,"Emphasize (v.) 強調、重視
+【詞性變化】
+emphasis (n.) 強調
+【搭配詞】
+emphasize importance 強調重要性
+【例句】
+The teacher emphasized the importance of regular review. (老師強調了定期複習的重要性。)"
+Audience,"Audience (n.) 觀眾、聽眾
+【詞性變化】
+auditory (adj.) 聽覺的
+【搭配詞】
+target audience 目標受眾
+【例句】
+The speech captivated the entire audience. (這場演講吸引了全場觀眾。)"
+Representative,"Representative (n.) 代表、代理人
+【詞性變化】
+represent (v.) 代表
+【搭配詞】
+sales representative 銷售代表
+【例句】
+A representative from the company met the press. (公司代表會見了新聞媒體。)"
+Establish,"Establish (v.) 建立、創立
+【詞性變化】
+establishment (n.) 建立、機構
+【搭配詞】
+establish a business 創業/建立企業
+【例句】
+The organization was established in 1995. (該組織成立於1995年。)"
+Influence,"Influence (v.) 影響、感化
+【詞性變化】
+influential (adj.) 有影響力的
+【搭配詞】
+have an influence on... 對…產生影響
+【例句】
+Parents deeply influence their children's habits. (父母深遠地影響著孩子習慣。)"
+Emission,"Emission (n.) 排放、排放物
+【詞性變化】
+emit (v.) 散發
+【搭配詞】
+carbon emission 碳排放
+【例句】
+New laws aim to reduce industrial gas emissions. (新法律旨在減少工業氣體排放。)"
+Conscious,"Conscious (adj.) 有意識的、神志清醒的
+【詞性變化】
+consciousness (n.) 意識
+【搭配詞】
+environmentally conscious 環保意識強烈的
+【例句】
+Consumers are becoming more environmentally conscious. (消費者變得越來越具有環保意識。)"
+Stimuli,"Stimuli (n.) 刺激物 (stimulus 的複數)
+【詞性變化】
+stimulate (v.) 刺激
+【搭配詞】
+response to stimuli 對刺激的反應
+【例句】
+Sensory stimuli evoke strong emotional memories. (感官刺激會喚起強烈的情感記憶。)"
+Irritable,"Irritable (adj.) 易怒的、急躁的
+【詞性變化】
+irritate (v.) 使激怒
+【搭配詞】
+become irritable 變得急躁
+【例句】
+Lack of sleep makes people moody and irritable. (睡眠不足讓人情緒化且易怒。)"
+Cognitive,"Cognitive (adj.) 認知的、感知的大腦機能
+【詞性變化】
+cognition (n.) 認知
+【搭配詞】
+cognitive development 認知發展
+【例句】
+Puzzles help enhance children's cognitive skills. (拼圖有助於提升兒童的認知技能。)"
+Flexibility,"Flexibility (n.) 靈活性、彈性
+【詞性變化】
+flexible (adj.) 彈性的
+【搭配詞】
+workplace flexibility 工作靈活性
+【例句】
+Workplace flexibility improves employee satisfaction. (工作場所的靈活性提升了員工滿意度。)"
+Fellow,"Fellow (n.) 同伴、研究員
+【詞性變化】
+fellowship (n.) 獎學金、友誼
+【搭配詞】
+fellow students 同班同學
+【例句】
+He shared his notes with his fellow students. (他與同班同學分享了他的筆記。)"
+Honour,"Honour (n.) 榮譽、敬意
+【詞性變化】
+honourable (adj.) 光榮的
+【搭配詞】
+in honour of... 為紀念/向…致敬
+【例句】
+A banquet was held in honour of the winner. (舉行了宴會以向獲勝者致敬。)"
+Visible,"Visible (adj.) 可見的、明顯的
+【詞性變化】
+visibility (n.) 能見度
+【搭配詞】
+clearly visible 清晰可見
+【例句】
+The mountain peak was visible from miles away. (數英里外就能清晰看到山峰。)"
+Integrity,"Integrity (n.) 正直、完整性
+【詞性變化】
+integrate (v.) 整合
+【搭配詞】
+personal integrity 個人正直品質
+【例句】
+He is respected for his high personal integrity. (他因高尚的個人正直品格而受到尊重。)"
+Constant,"Constant (adj.) 持續不斷的、恆定的
+【詞性變化】
+constantly (adv.) 不斷地
+【搭配詞】
+constant noise 連續的噪音
+【例句】
+The constant noise made it hard to concentrate. (持續的噪音讓人難以集中注意力。)"
+Routine,"Routine (n.) 例行公事、日常習慣
+【詞性變化】
+routinely (adv.) 例行地
+【搭配詞】
+daily routine 日常作息
+【例句】
+Exercise is an essential part of her daily routine. (運動是她日常作息中不可或缺的一部份。)"
+Priority,"Priority (n.) 優先事項、首要任務
+【詞性變化】
+prioritize (v.) 確定優先次序
+【搭配詞】
+top priority 首要任務
+【例句】
+Safety is our top priority in this factory. (在該工廠中，安全是我們的首要任務。)"
+Sequence,"Sequence (n.) 順序、序列
+【詞性變化】
+sequential (adj.) 按順序的
+【搭配詞】
+in sequence 按順序
+【例句】
+Please follow the instructions in exact sequence. (請嚴格按照順序遵循說明。)"
+Nowadays,"Nowadays (adv.) 現今、如今
+【詞性變化】
+nowadays trend 現今趨勢
+【搭配詞】
+common nowadays 現今普遍的
+【例句】
+Nowadays, many people work remotely from home. (現今，許多人在家遠端工作。)"
+Essential,"Essential (adj.) 必要的、不可或缺的
+【詞性變化】
+essentially (adv.) 本質上
+【搭配詞】
+essential element 核心要素
+【例句】
+Water is essential for the survival of all living things. (水對所有生物的生存而言都是不可或缺的。)"
+Necessary,"Necessary (adj.) 必要的、必須的
+【詞性變化】
+necessity (n.) 必需品
+【搭配詞】
+necessary steps 必要步骤
+【例句】
+Take all necessary precautions before entering. (进入前请采取一切必要的预防措施。)"
+Generous,"Generous (adj.) 慷慨的、大方的
+【詞性變化】
+generosity (n.) 慷慨
+【搭配詞】
+generous donation 慷慨的捐贈
+【例句】
+The company made a generous donation to charity. (公司向慈善機構進行了一筆慷慨的捐贈。)"
+Thoughtful,"Thoughtful (adj.) 體貼的、深思熟慮的
+【詞性變化】
+thoughtfully (adv.) 體貼地
+【搭配詞】
+thoughtful gesture 體貼的舉動
+【例句】
+Thank you for sending such a thoughtful gift. (感謝你寄來如此體貼的禮物。)"
+Afford,"Afford (v.) 負擔得起、買得起
+【詞性變化】
+affordable (adj.) 負擔得起的
+【搭配詞】
+afford the cost 負擔費用
+【例句】
+They cannot afford to buy a new house right now. (他們現在負擔不起買新房子的費用。)"
+Intend,"Intend (v.) 打算、意圖
+【詞性變化】
+intention (n.) 意圖
+【搭配詞】
+intend to do... 打算做…
+【例句】
+We intend to launch the new product next month. (我們打算下個月推出新產品。)"
+Attempt,"Attempt (v.) 嘗試、企圖
+【詞性變化】
+attempt (n.) 嘗試
+【搭配詞】
+make an attempt 嘗試努力
+【例句】
+He attempted to break the world record in running. (他嘗試打破跑步世界紀錄。)"
+Refuse,"Refuse (v.) 拒絕
+【詞性變化】
+refusal (n.) 拒絕
+【搭配詞】
+refuse an offer 拒絕提議
+【例句】
+She politely refused the invitation to the party. (她婉言拒絕了參加派對的邀請。)"
+Had better,"Had better (phr.) 最好還是…
+【詞性變化】
+had better do... 最好做…
+【搭配詞】
+you had better... 你最好…
+【例句】
+You had better leave early to avoid traffic. (你最好早點出發以避開交通擁塞。)"
+Would rather,"Would rather (phr.) 寧願、寧可
+【詞性變化】
+would rather do... 寧願做…
+【搭配詞】
+would rather stay... 寧願留下
+【例句】
+I would rather stay home than go out tonight. (今晚我寧願留在家裡也不想出去。)"
+Investigation,"Investigation (n.) 調查、研究
+【詞性變化】
+investigate (v.) 調查
+【搭配詞】
+under investigation 調查中
+【例句】
+The police launched an investigation into the cause. (警方對事故原因展開了調查。)"
+Punish,"Punish (v.) 惩罚、处分
+【詞性變化】
+punishment (n.) 惩罚
+【搭配詞】
+severely punish 严厉惩罚
+【例句】
+Cheating in exams will be severely punished. (考试作弊将受到严惩。)"
+Scold,"Scold (v.) 责备、训斥
+【詞性變化】
+scolding (n.) 责骂
+【搭配詞】
+scold someone for... 因…训斥某人
+【例句】
+The mother scolded her son for drawing on the wall. (母亲因儿子在墙上画画而训斥了他。)"
+Horizontal,"Horizontal (adj.) 水平的、横的
+【詞性變化】
+horizontally (adv.) 水平地
+【搭配詞】
+horizontal line 水平线
+【例句】
+Draw a straight horizontal line across the paper. (在纸上画出一条直直的水平线。)"
+Vertically,"Vertically (adv.) 垂直地、竖直地
+【詞性變化】
+vertical (adj.) 垂直的
+【搭配詞】
+stacked vertically 垂直堆叠
+【例句】
+The boxes were stacked vertically in the store. (盒子在仓库里垂直堆叠着。)"
+Position,"Position (n.) 位置、职位
+【詞性变化】
+position (v.) 安置
+【搭配词】
+key position 关键职位
+【例句】
+She applied for a managerial position in sales. (她应征了销售部门的管理职位。)"
+Occasion,"Occasion (n.) 场合、时机
+【詞性变化】
+occasional (adj.) 偶尔的
+【搭配词】
+special occasion 特别场合
+【例句】
+Dressing up is appropriate for a formal occasion. (在正式场合盛装打扮是合适的。)"
+Category,"Category (n.) 类别、范畴
+【詞性变化】
+categorize (v.) 分类
+【搭配词】
+product category 产品类别
+【例句】
+Books are arranged by category in the library. (图书馆中的书籍是按类别排列的。)"
+Purchase,"Purchase (v.) 购买
+【詞性变化】
+purchase (n.) 购买物
+【搭配词】
+make a purchase 进行购买
+【例句】
+You can purchase tickets online in advance. (您可以提前在网络上购买门票。)"
+Garment,"Garment (n.) 服装、衣物
+【詞性变化】
+garment industry 服装业
+【搭配词】
+garment care 衣物保养
+【例句】
+This delicate garment must be washed by hand. (这件精致的衣服必须手洗。)"
+Boost,"Boost (v.) 提升、促进
+【詞性变化】
+boost (n.) 提高
+【搭配词】
+boost confidence 提升信心
+【例句】
+Positive feedback boosted her self-confidence. (正面的反馈提升了她的自信心。)"
+Customize,"Customize (v.) 订制、客制化
+【詞性变化】
+customization (n.) 客制化
+【搭配词】
+customize order 客制化订单
+【例句】
+Customers can customize their shoes on the website. (顾客可在网站上订制鞋款。)"
+Specifications,"Specifications (n.) 规格、说明书 (specification 复数)
+【詞性变化】
+specify (v.) 具体说明
+【搭配词】
+product specifications 产品规格
+【例句】
+Check the specifications before making a purchase. (购买前请详阅产品规格。)"
+Dwell,"Dwell (v.) 居住、沉溺于
+【詞性变化】
+dweller (n.) 居住者
+【搭配词】
+dwell on the past 沉溺于过去
+【例句】
+Don't dwell on your past mistakes; move forward. (不要沉溺于过去的错误；向前看。)"
+Nudge,"Nudge (v.) 轻推、微调引导
+【詞性变化】
+nudge (n.) 轻推
+【搭配词】
+nudge someone in the right direction 微引导某人走向正确方向
+【例句】
+The teacher nudged him to complete his homework. (老师轻推督促他完成作业。)"
+Manipulate,"Manipulate (v.) 操纵、操控
+【詞性变化】
+manipulation (n.) 操纵
+【搭配词】
+manipulate data 操纵数据
+【例句】
+It is unethical to manipulate research results. (操纵研究结果是不道德的。)"
+Caricature,"Caricature (n.) 讽刺画、漫画造型
+【詞性变化】
+caricaturist (n.) 漫画家
+【搭配词】
+draw a caricature 画讽刺画
+【例句】
+The artist drew a funny caricature of the politician. (艺术家画了一幅政客的滑稽讽刺画。)"
+Complexity,"Complexity (n.) 复杂性、复杂度
+【詞性变化】
+complex (adj.) 复杂的
+【搭配词】
+reduce complexity 降低复杂性
+【例句】
+The project was delayed due to its high complexity. (该计划因复杂度高而延误。)"
+Personality,"Personality (n.) 个性、人格
+【詞性变化】
+personal (adj.) 个人的
+【搭配词】
+outgoing personality 外向的个性
+【例句】
+Her warm personality made her popular at school. (她热情的个性使她在学校大受欢迎。)"
+Define,"Define (v.) 定义、界定
+【詞性变化】
+definition (n.) 定义
+【搭配词】
+clearly define 清晰界定
+【例句】
+Terms must be clearly defined in the contract. (合约中必须明确界定条款。)"
+Rest,"Rest (n.) 休息、剩余部分
+【詞性变化】
+restful (adj.) 宁静的
+【搭配词】
+take a rest 休息一下
+【例句】
+After a long walk, we sat down to take a rest. (长途漫步后，我们坐下来休息。)"
+Omit,"Omit (v.) 省略、遗漏
+【詞性变化】
+omission (n.) 省略
+【搭配词】
+omit details 省略细节
+【例句】
+You may omit unnecessary steps from the procedure. (您可以从流程中省略不必要的步骤。)"
+Signal,"Signal (n.) 信号、暗号
+【詞性变化】
+signal (v.) 发信号
+【搭配词】
+traffic signal 交通信号
+【例句】
+The red traffic signal means drivers must stop. (红色的交通信号意味着驾驶必须停止。)"
+Structure,"Structure (n.) 结构、建筑物
+【詞性变化】
+structural (adj.) 结构上的
+【搭配词】
+organizational structure 组织结构
+【例句】
+Engineers inspected the structural safety of the bridge. (工程师检查了桥梁的结构安全。)"
+Habour,"Habour (n.) 港口、避难所 (Harbour)
+【詞性变化】
+harbor (v.) 庇护、怀有
+【搭配词】
+natural habour 天然港口
+【例句】
+Ships rested safely in the natural habour. (船只安全地停泊在天然港口中。)"
+Search,"Search (v.) 搜寻、寻找
+【詞性变化】
+search (n.) 搜索
+【搭配词】
+search for information 搜寻资讯
+【例句】
+Scientists continue to search for renewable energy. (科学家继续寻找可再生能源。)"
+Make one's bed,"Make one's bed (phr.) 整理床铺 
+【詞性变化】
+make the bed 铺床
+【搭配词】
+make one's bed every morning 每天早上整理床铺
+【例句】
+He makes his bed every morning before breakfast. (他每天早上吃早餐前都会整理床铺。)"
+Believe in somebody,"Believe in somebody (phr.) 信任某人、相信某人的能力
+【詞性变化】
+belief (n.) 信仰
+【搭配词】
+firmly believe in... 坚定信任某人
+【例句】
+Parents should always believe in their children. (父母应该始终信任自己的孩子。)"
+Set the table,"Set the table (phr.) 摆好餐具备餐
+【詞性变化】
+tableware (n.) 餐具
+【搭配词】
+set the table for dinner 摆好晚餐餐具
+【例句】
+Please help set the table before guests arrive. (请在客人到达前帮忙摆好餐具。)"
+Object,"Object (v.) 反对、不赞同
+【詞性变化】
+objection (n.) 反对理由
+【搭配词】
+object to the proposal 反对该提案
+【例句】
+Several members objected to the proposed budget. (几位成员反对拟议的预算。)"
+Oppose,"Oppose (v.) 反对、对抗
+【詞性变化】
+opposition (n.) 反对
+【搭配词】
+strongly oppose 强烈反对
+【例句】
+Local residents strongly oppose the construction计划。)"
+Resident,"Resident (n.) 居民、住户
+【詞性变化】
+residence (n.) 住宅
+【搭配词】
+local resident 当地居民
+【例句】
+Local residents raised concerns about traffic noise. (当地居民对交通噪音表示担忧。)"
+Regret,"Regret (v.) 后悔、遗憾
+【詞性变化】
+regretful (adj.) 遗憾的
+【搭配词】
+deeply regret 深感遗憾
+【例句】
+I deeply regret not taking that career opportunity. (我深感遗憾没有抓住那次职业机会。)"
+Academic,"Academic (adj.) 学术的、学校的
+【詞性变化】
+academy (n.) 学院
+【搭配词】
+academic achievement 学术成就
+【例句】
+The university promotes academic research excellence. (该大学致力于促进卓越的学术研究。)"
+Expository,"Expository (adj.) 说明性的、解释性的
+【詞性变化】
+exposition (n.) 说明
+【搭配词】
+expository essay 说明文
+【例句】
+Students wrote an expository essay on climate change. (学生们写了一篇关于气候变迁的说明文。)"
+Narrative,"Narrative (n.) 叙事、故事
+【詞性变化】
+narrate (v.) 叙述
+【搭配词】
+personal narrative 个人叙事
+【例句】
+Her narrative described her journey across Asia. (她的叙事描述了她的亚洲之旅。)"
+Apply,"Apply (v.) 申请、应用、涂抹
+【詞性变化】
+application (n.) 申请
+【搭配词】
+apply for a job 应征工作
+【例句】
+She decided to apply for a scholarship abroad. (她决定申请国外奖学金。)"
+Dotted,"Dotted (adj.) 点状的、星罗棋布的
+【詞性变化】
+dot (n.) 小点
+【搭配词】
+dotted line 虚线
+【例句】
+Please sign your name on the dotted line. (请在虚线上签署您的姓名。)"
+Coast,"Coast (n.) 海岸、海滨
+【詞性变化】
+coastal (adj.) 海岸的
+【搭配词】
+along the coast 沿着海岸
+【例句】
+We took a scenic drive along the coast. (我们沿着海岸进行了一趟风景优美的驾驶。)"
+Explore,"Explore (v.) 探索、探险
+【詞性变化】
+exploration (n.) 探索
+【搭配词】
+explore options 探索选择
+【例句】
+Researchers explore new treatments for diseases. (研究人员探索新疾病治疗方法。)"
+Spot,"Spot (n.) 地点、斑点
+【詞性变化】
+spot (v.) 看见/发现
+【搭配词】
+tourist spot 观光景点
+【例句】
+This lake is a popular spot for picnics. (这座湖泊是野餐热门景点。)"
+Luxury,"Luxury (n.) 奢华、奢侈品
+【詞性变化】
+luxurious (adj.) 豪华的
+【搭配词】
+luxury hotel 奢华饭店
+【例句】
+Staying at the luxury resort was an amazing experience. (住在奢华度假村是一次棒极了的体验。)"
+Liner,"Liner (n.) 邮轮、班轮
+【詞性变化】
+ocean liner 远洋邮轮
+【搭配词】
+luxury liner 豪华邮轮
+【例句】
+The ocean liner set sail across the Atlantic Ocean. (远洋邮轮航行穿越大西洋。)"
+Coach,"Coach (n.) 长途客运、教练
+【詞性变化】
+coaching (n.) 指导
+【搭配词】
+sports coach 体育教练
+【例句】
+The football team welcomed their new head coach. (足球队迎来了他们的新任总教练。)"
+Lorry,"Lorry (n.) 大货车、卡车 (英式)
+【詞性变化】
+lorry driver 货车司机
+【搭配词】
+heavy lorry 重型货车
+【例句】
+A heavy lorry delivered goods to the warehouse. (一辆重型货车将货物送达仓库。)"
+Panic,"Panic (n.) 恐慌、惊慌
+【詞性变化】
+panicky (adj.) 恐慌的
+【搭配词】
+in a panic 恐慌中
+【例句】
+Don't panic in an emergency; stay calm. (紧急情况下不要恐慌；保持冷静。)"
+Tablet,"Tablet (n.) 平板电脑、药片
+【詞性变化】
+tablet computer 平板电脑
+【搭配词】
+take a tablet 服用药片
+【例句】
+He reads news on his tablet computer every morning. (他每天早上在平板电脑上阅读新闻。)"
+Rhinoceros,"Rhinoceros (n.) 犀牛
+【詞性变化】
+rhino (n.) 犀牛(简称)
+【搭配词】
+endangered rhinoceros 濒危犀牛
+【例句】
+The African rhinoceros is a protected species. (非洲犀牛是受保护物种。)"
+Extinct,"Extinct (adj.) 灭绝的、绝种的
+【詞性变化】
+extinction (n.) 绝种
+【搭配词】
+become extinct 灭绝
+【例句】
+Dinosaurs became extinct millions of years ago. (恐龙于数百万年前灭绝了。)"
+Equal,"Equal (adj.) 平等的、相等的
+【詞性变化】
+equality (n.) 平等
+【搭配词】
+equal rights 平等权利
+【例句】
+All citizens deserve equal opportunities in education. (所有公民都应享有平等的教育机会。)"
+Identical,"Identical (adj.) 完全相同的、同一的
+【詞性变化】
+identically (adv.) 同样地
+【搭配词】
+identical twins 同卵双胞胎
+【例句】
+The two sisters are identical twins. (这对姐妹是同卵双胞胎。)"
+Debt,"Debt (n.) 债务、借款
+【詞性变化】
+debtor (n.) 债务人
+【搭配词】
+pay off debt 还清债务
+【例句】
+It took years of hard work to pay off his debt. (他花了多年的辛勤工作才还清债务。)"
+Exactly,"Exactly (adv.) 确切地、精确地
+【詞性变化】
+exact (adj.) 精确的
+【搭配词】
+exactly right 完全正确
+【例句】
+Your answer is exactly what I was looking for. (你的答案完全是我在寻找的。)"
+Loyal,"Loyal (adj.) 忠诚的、忠实的
+【詞性变化】
+loyalty (n.) 忠诚
+【搭配词】
+loyal customer 忠实顾客
+【例句】
+The company rewards loyal customers with discounts. (该公司以折扣回馈忠实顾客。)"
+Native,"Native (adj.) 本土的、本国的
+【詞性变化】
+native (n.) 本地人
+【搭配词】
+native speaker 母语人士
+【例句】
+She speaks English like a native speaker. (她说英语就像母语人士一样流利。)"
+Anxiously,"Anxiously (adv.) 焦急地、不安地
+【詞性变化】
+anxious (adj.) 焦虑的
+【搭配词】
+wait anxiously 焦急地等待
+【例句】
+Parents waited anxiously for news of their children. (家长们焦急地等待着孩子们的消息。)"
+Deliberately,"Deliberately (adv.) 故意地、蓄意地
+【詞性变化】
+deliberate (adj.) 蓄意的
+【搭配词】
+deliberately avoid 故意避开
+【例句】
+He deliberately avoided answering the awkward question. (他故意避开不回答尴尬的问题。)"
+Probably,"Probably (adv.) 大概、很可能
+【詞性变化】
+probable (adj.) 可能的
+【搭配词】
+probably happen 很可能发生
+【例句】
+We will probably finish the project by Friday. (我们很可能会在周五前完成该计划。)"
+Occasionally,"Occasionally (adv.) 偶尔地、有时
+【詞性变化】
+occasional (adj.) 偶尔的
+【搭配词】
+visit occasionally 偶尔拜访
+【例句】
+They occasionally go out for dinner on weekends. (他们周末偶尔会出去吃晚餐。)"
+Lecture,"Lecture (n.) 讲座、授课
+【詞性变化】
+lecturer (n.) 讲师
+【搭配词】
+attend a lecture 参加讲座
+【例句】
+The professor gave an inspiring lecture on physics. (教授发表了一场鼓舞人心的物理学讲座。)"
+Conductor,"Conductor (n.) 指挥家、导体、售票员
+【詞性变化】
+conduct (v.) 指导/传导
+【搭配词】
+orchestra conductor 管弦乐团指挥
+【例句】
+The conductor raised his baton and the music began. (指挥家举起指挥棒，音乐随之开始。)"
+Guilt,"Guilt (n.) 内疚、罪恶感
+【詞性变化】
+guilty (adj.) 内疚的
+【搭配词】
+feel guilt 感到内疚
+【例句】
+He felt a deep sense of guilt for breaking his word. (他因失言而感到深深的内疚。)"
+Moreish,"Moreish (adj.) 让人吃停不下来的(英式口语)
+【詞性变化】
+more (adj.) 更多的
+【搭配词】
+moreish snack 让人停不下来的小吃
+【例句】
+These homemade cookies are extremely moreish. (这些自制饼干真是让人一口接一口停不下来。)"
+Flock,"Flock (n.) 羊群、鸟群、人群
+【詞性变化】
+flock (v.) 聚集
+【搭配词】
+a flock of birds 一群鸟
+【例句】
+A large flock of birds flew across the sunset sky. (一大群鸟飞过了夕阳天空。)"
+Ideal,"Ideal (adj.) 理想的、完美的
+【詞性变化】
+ideal (n.) 理想
+【搭配词】
+ideal choice 理想选择
+【例句】
+This quiet beach is an ideal location for relaxation. (这个安静的沙滩是放松身心的理想地点。)"
+Poisonous,"Poisonous (adj.) 有毒的
+【詞性变化】
+poison (n.) 毒药
+【搭配词】
+poisonous snake 有毒的蛇
+【例句】
+Beware of poisonous mushrooms in the forest. (小心森林中的有毒蘑菇。)"
+Stewardship,"Stewardship (n.) 管理职责、托管责任
+【詞性变化】
+steward (n.) 管理员
+【搭配词】
+environmental stewardship 环境托管责任
+【例句】
+Good environmental stewardship helps protect nature. (良好的环境托管职责有助于保护自然。)"
+Represent,"Represent (v.) 代表、象征
+【詞性变化】
+representation (n.) 代表
+【搭配词】
+represent a client 代表客户
+【例句】
+The lawyer was hired to represent the company in court. (该律师被聘请在法庭上代表该公司。)"
+Cottage,"Cottage (n.) 农舍、小屋
+【詞性变化】
+cottage industry 手工业
+【搭配词】
+cozy cottage 温馨的小屋
+【例句】
+They rented a cozy cottage in the mountains for vacation. (他们租了山里温馨的小屋度假。)"
+Decay,"Decay (v.) 腐烂、衰退
+【詞性变化】
+decay (n.) 腐烂
+【搭配词】
+tooth decay 蛀牙
+【例句】
+Regular brushing helps prevent tooth decay. (定期刷牙有助于预防蛀牙。)"
+Foremost,"Foremost (adj.) 最优秀的、首要的
+【詞性变化】
+first and foremost 首先
+【搭配词】
+foremost expert 首屈一指的专家
+【例句】
+Dr. Smith is the foremost expert in renewable energy. (史密斯博士是可再生能源领域首屈一指的专家。)"
+Burden,"Burden (n.) 负担、重担
+【詞性变化】
+burdensome (adj.) 沉重的
+【搭配词】
+heavy burden 沉重的负担
+【例句】
+High tuition fees pose a heavy financial burden on families. (高额学费对家庭造成了沉重的财务负担。)"
+Provide,"Provide (v.) 提供、供应
+【詞性变化】
+provider (n.) 提供者
+【搭配词】
+provide support 提供支援
+【例句】
+The shelter provides food and warmth for homeless people. (庇护所为无家可归者提供食物与温暖。)"
+Offspring,"Offspring (n.) 后代、子孙
+【詞性变化】
+spring (n.) 源头
+【搭配词】
+produce offspring 繁衍后代
+【例句】
+Animals instinctively protect their young offspring. (动物本能地保护牠们幼小的后代。)"
+Norin,"Norin (n.) 农林(日语音译) / Nori (海苔) 之误拼写
+【詞性变化】
+norin industry 农林业
+【搭配词】
+Norin standard 农林标准
+【例句】
+The Norin standard applies to agricultural products. (农林标准适用于农产品。)"
+Fundament,"Fundament (n.) 基础、根本 (Foundations)
+【詞性变化】
+fundamental (adj.) 基础的
+【搭配词】
+solid fundament 坚实基础
+【例句】
+Honesty is the fundament of trust in relationships. (诚实是人际关系中信任的基础。)"
+Domestic,"Domestic (adj.) 国内的、家庭的
+【詞性变化】
+domestically (adv.) 在国内
+【搭配词】
+domestic flight 国内航班
+【例句】
+Passenger traffic on domestic flights increased this quarter. (本季国内航班的客运量有所增加。)"
+Development,"Development (n.) 发展、开发
+【詞性变化】
+develop (v.) 发展
+【搭配词】
+economic development 经济发展
+【例句】
+The city invested heavily in infrastructure development. (该城市在基础设施建设上投入巨资。)"
+Achieve,"Achieve (v.) 实现、达成
+【詞性变化】
+achievement (n.) 成就
+【搭配词】
+achieve a goal 实现目标
+【例句】
+Through hard work, she managed to achieve her goal. (透过努力，她成功实现自己的目标。)"
+Career,"Career (n.) 职业生涯、事业
+【詞性变化】
+career path 职业道路
+【搭配词】
+successful career 成功的事业
+【例句】
+He enjoyed a long and successful career in journalism. (他在新闻界拥有漫长而成功的职业生涯。)"
+Aspiration,"Aspiration (n.) 抱负、渴望
+【詞性变化】
+aspire (v.) 渴望
+【搭配词】
+career aspiration 职业抱负
+【例句】
+Her highest aspiration is to become a research scientist. (她最高的抱负是成为一名研究科学家。)"
+Fulfillment,"Fulfillment (n.) 成就感、实现
+【詞性变化】
+fulfill (v.) 实现
+【搭配词】
+sense of fulfillment 成就感
+【例句】
+Volunteering brings a deep sense of personal fulfillment. (志工服务带来深刻的个人成就感。)"
+Duty,"Duty (n.) 职责、义务
+【詞性变化】
+dutiful (adj.) 尽责的
+【搭配词】
+civic duty 公民义务
+【例句】
+Voting in elections is an important civic duty. (在选举中投票是一项重要的公民义务。)"
+Couple,"Couple (n.) 夫妻、一对、几个
+【詞性变化】
+couple (v.) 连结
+【搭配词】
+a couple of days 几天
+【例句】
+The married couple celebrated their 10th anniversary. (这对夫妇庆祝了结婚10周年纪念。)"
+Immense,"Immense (adj.) 巨大的、广大的
+【詞性变化】
+immensely (adv.) 极其
+【搭配词】
+immense pressure 巨大的压力
+【例句】
+The team worked under immense pressure to meet the deadline. (团队在巨大的压力下工作以赶上截止日期。)"
+Desire,"Desire (n.) 欲望、渴望
+【詞性变化】
+desirable (adj.) 值得要的
+【搭配词】
+strong desire 强烈的渴望
+【例句】
+She expressed a strong desire to learn new skills. (她表达了学习新技能的强烈渴望。)"
+occupation,"occupation (n.) 職業
+【詞性變化】
+occupational (adj.) 職業的
+【搭配詞】
+choose an occupation 選擇職業
+【例句】
+Please state your occupation on the application form. (請在申請表上註明您的職業。)"
+all walks of life,"all walks of life (phr.) 各行各業
+【詞性變化】
+N/A
+【搭配詞】
+people from all walks of life 來自各行各業的人
+【例句】
+The conference attracted professionals from all walks of life. (該會議吸引了來自各行各業的專業人士。)"
+aviation industry,"aviation industry (n. phr.) 航空業
+【詞性變化】
+aviation (n.) 航空
+【搭配詞】
+work in the aviation industry 在航空業工作
+【例句】
+The pandemic hit the aviation industry extremely hard. (疫情給航空業帶來了極大的打擊。)"
+financial industry,"financial industry (n. phr.) 金融業
+【詞性變化】
+finance (n.) 金融；financial (adj.) 財務的
+【搭配詞】
+boom in the financial industry 金融業的繁榮
+【例句】
+Hong Kong is famous for its vibrant financial industry. (香港以其蓬勃發展的金融業而聞名。)"
+hospitality industry,"hospitality industry (n. phr.) 酒店業 / 餐旅業
+【詞性變化】
+hospitality (n.) 款待
+【搭配詞】
+careers in the hospitality industry 酒店業的職涯
+【例句】
+She decided to pursue a career in the hospitality industry. (她決定在酒店業發展事業。)"
+catering industry,"catering industry (n. phr.) 飲食業 / 餐飲業
+【詞性變化】
+cater (v.) 提供餐飲
+【搭配詞】
+safety standards in the catering industry 飲食業的安全標準
+【例句】
+The catering industry must follow strict hygiene guidelines. (飲食業必須遵循嚴格的衛生指引。)"
+education industry,"education industry (n. phr.) 教育行業
+【詞性變化】
+educate (v.) 教育；educational (adj.) 教育的
+【搭配詞】
+develop the education industry 發展教育行業
+【例句】
+Technology is transforming the traditional education industry. (科技正在改變傳統的教育行業。)"
+judicial field,"judicial field (n. phr.) 法律界 / 司法領域
+【詞性變化】
+judicial (adj.) 司法的；judiciary (n.) 司法機關
+【搭配詞】
+experts in the judicial field 法律界的專家
+【例句】
+He has dedicated over twenty years to working in the judicial field. (他投身法律界工作已超過二十年。)"
+high value-added industry,"high value-added industry (n. phr.) 高附加值產業
+【詞性變化】
+value-add (n.) 附加價值
+【搭配詞】
+promote high value-added industry 推動高附加值產業
+【例句】
+The government aims to foster high value-added industries. (政府旨在培育高附加值產業。)"
+menial work,"menial work (n. phr.) 體力勞動工作 / 低微工作
+【詞性變化】
+menial (adj.) 奴僕的、低微的
+【搭配詞】
+perform menial work 從事體力勞動工作
+【例句】
+Many young people are reluctant to do menial work. (許多年輕人不太願意從事體力勞動工作。)"
+sunset industry,"sunset industry (n. phr.) 夕陽工業
+【詞性變化】
+N/A
+【搭配詞】
+decline of a sunset industry 夕陽工業的衰退
+【例句】
+Traditional manufacturing is often regarded as a sunset industry. (傳統製造業常被視為夕陽工業。)"
+temporary job,"temporary job (n. phr.) 臨時工作
+【詞性變化】
+temporarily (adv.) 暫時地
+【搭配詞】
+apply for a temporary job 申請臨時工作
+【例句】
+He took a temporary job as a waiter during the summer break. (他在暑假期間找了一份侍應的臨時工作。)"
+clerical work,"clerical work (n. phr.) 文書工作
+【詞性變化】
+clerk (n.) 文員
+【搭配詞】
+handle clerical work 處理文書工作
+【例句】
+Her daily routine mainly consists of clerical work and filing. (她的日常工作主要由文書處理和檔案歸檔組成。)"
+working holiday,"working holiday (n. phr.) 工作假期
+【詞性變化】
+N/A
+【搭配詞】
+go on a working holiday 參加工作假期
+【例句】
+She spent a year on a working holiday in Australia. (她在澳洲度過了一年的工作假期。)"
+internship,"internship (n.) 實習
+【詞性變化】
+intern (n.) 實習生
+【搭配詞】
+complete a summer internship 完成夏季實習
+【例句】
+He gained valuable practical experience through his internship. (他透過實習累積了寶貴的實務經驗。)"
+customer service,"customer service (n. phr.) 客戶服務
+【詞性變化】
+N/A
+【搭配詞】
+excellent customer service 優良的客戶服務
+【例句】
+Our team is committed to delivering top-quality customer service. (我們的團隊致力於提供最高品質的客戶服務。)"
+employer,"employer (n.) 僱主
+【詞性變化】
+employ (v.) 僱用；employment (n.) 就業
+【搭配詞】
+prospective employer 潛在僱主
+【例句】
+An employer should respect the legal rights of all staff. (僱主應當尊重所有員工的法定權益。)"
+employee,"employee (n.) 員工 / 僱員
+【詞性變化】
+employ (v.) 僱用；employer (n.) 僱主
+【搭配詞】
+valued employee 受重視的員工
+【例句】
+The company provides health benefits for full-time employees. (公司為全職員工提供健康福利。)"
+breadwinner,"breadwinner (n.) 一家之主 / 經濟支柱
+【詞性變化】
+N/A
+【搭配詞】
+sole breadwinner 唯一的經濟支柱
+【例句】
+He felt immense pressure as the sole breadwinner of the family. (作為家庭唯一的經濟支柱，他感到巨大的壓力。)"
+freelancer,"freelancer (n.) 自由職業者
+【詞性變化】
+freelance (adj./v.) 自由職業的
+【搭配詞】
+work as a full-time freelancer 作為全職自由職業者工作
+【例句】
+As a freelancer, she enjoys flexible working hours. (作為自由職業者，她享有彈性的工作時間。)"
+colleague,"colleague (n.) 同事
+【詞性變化】
+N/A
+【搭配詞】
+supportive colleague 互助的同事
+【例句】
+I established a great relationship with my new colleagues. (我和我的新同事建立起極佳的關係。)"
+civil servants,"civil servants (n. phr.) 公務員
+【詞性變化】
+civil service (n.) 公務員體系
+【搭配詞】
+recruitment of civil servants 招聘公務員
+【例句】
+Civil servants are expected to serve the public with integrity. (公務員被期望以正直誠信態度服務公眾。)"
+white collar,"white collar (n. phr. / adj.) 白領 (階級/工作)
+【詞性變化】
+N/A
+【搭配詞】
+white collar worker 白領工人
+【例句】
+White collar workers typically work in office environments. (白領員工通常在辦公室環境中工作。)"
+blue collar,"blue collar (n. phr. / adj.) 藍領 (階級/工作)
+【詞性變化】
+N/A
+【搭配詞】
+blue collar job 藍領工作
+【例句】
+Blue collar workers play an essential role in construction. (藍領工人在建造業中扮演著不可或缺的角色。)"
+frontline staff,"frontline staff (n. phr.) 前線員工
+【詞性變化】
+frontline (adj.) 第一線的
+【搭配詞】
+dedication of frontline staff 前線員工的奉獻
+【例句】
+Frontline staff require excellent interpersonal skills. (前線員工需要具備良好的相處與溝通技巧。)"
+back office,"back office (n. phr.) 後勤部門
+【詞性變化】
+N/A
+【搭配詞】
+back office operations 後勤運作
+【例句】
+Back office staff support the smooth running of company administration. (後勤部門員工支援公司行政的順暢運作。)"
+manual labour,"manual labour (n. phr.) 勞工 / 體力勞動
+【詞性變化】
+labourer (n.) 體力勞動者
+【搭配詞】
+require heavy manual labour 需要重度體力勞動
+【例句】
+Automation has significantly reduced the need for manual labour. (自動化大幅減少了對體力勞動的需求。)"
+slasher,"slasher (n.) 多重職業者 / 斜槓族
+【詞性變化】
+slash (n.) 斜線
+【搭配詞】
+become a popular slasher 成為熱門的斜槓族
+【例句】
+Being a slasher allows young people to explore multiple passions. (成為斜槓族讓年輕人能探索多重志趣。)"
+aspiration,"aspiration (n.) 志向 / 抱負
+【詞性變化】
+aspire (v.) 立志、渴望
+【搭配詞】
+career aspiration 職業抱負
+【例句】
+Her main career aspiration is to become a successful entrepreneur. (她主要的職業抱負是成為一名成功的創業家。)"
+multi-tasking,"multi-tasking (n. / adj.) 進行多重任務 / 多工作業
+【詞性變化】
+multitask (v.) 同時做多件事
+【搭配詞】
+efficient multi-tasking 高效的多工作業
+【例句】
+Multi-tasking is an essential skill in a fast-paced workplace. (多工作業是快節奏職場中的必備技能。)"
+analytical ability,"analytical ability (n. phr.) 分析能力
+【詞性變化】
+analyze (v.) 分析；analytical (adj.) 分析的
+【搭配詞】
+strong analytical ability 強大的分析能力
+【例句】
+His sharp analytical ability helped the team identify the root cause. (他敏銳的分析能力協助團隊找到了根本原因。)"
+computer skills,"computer skills (n. phr.) 電腦能力 / 資訊技能
+【詞性變化】
+computerize (v.) 電腦化
+【搭配詞】
+basic computer skills 基礎電腦能力
+【例句】
+Good computer skills are required for most clerical positions. (大多數文書職位都要求具備良好的電腦能力。)"
+executive experience,"executive experience (n. phr.) 行政經驗 / 高階管理經驗
+【詞性變化】
+executive (n./adj.) 高階主管
+【搭配詞】
+years of executive experience 多年的行政管理經驗
+【例句】
+The candidate possesses extensive executive experience in finance. (該求職者在金融領域擁有豐富的行政管理經驗。)"
+solid experience,"solid experience (n. phr.) 實在經驗 / 扎實經驗
+【詞性變化】
+solidify (v.) 鞏固
+【搭配詞】
+gain solid experience 累積扎實經驗
+【例句】
+She has solid experience in handling complex customer complaints. (她在處理複雜的客戶投訴方面有扎實的經驗。)"
+presentation skills,"presentation skills (n. phr.) 演講技巧 / 簡報技巧
+【詞性變化】
+present (v.) 簡報、發表
+【搭配詞】
+enhance presentation skills 提升簡報技巧
+【例句】
+Attending public speaking workshops can improve your presentation skills. (參加公眾演講工作坊能提升你的簡報技巧。)"
+interpersonal skills,"interpersonal skills (n. phr.) 人際交往能力
+【詞性變化】
+interpersonal (adj.) 人際的
+【搭配詞】
+excellent interpersonal skills 優異的人際交往能力
+【例句】
+Interpersonal skills are crucial when working in a team environment. (在團隊環境中工作時，人際交往能力至關重要。)"
+global perspective,"global perspective (n. phr.) 國際視野 / 全球觀點
+【詞性變化】
+perspective (n.) 視角
+【搭配詞】
+develop a global perspective 培養國際視野
+【例句】
+Studying abroad helped her cultivate a broader global perspective. (出國留學幫助她培養了更廣闊的國際視野。)"
+step out of comfort zone,"step out of comfort zone (phr.) 踏出舒適圈
+【詞性變化】
+N/A
+【搭配詞】
+courage to step out of comfort zone 踏出舒適圈的勇氣
+【例句】
+Growth happens when you are willing to step out of your comfort zone. (當你願意踏出舒適圈時，成長才會發生。)"
+work under pressure,"work under pressure (phr.) 在壓力下工作
+【詞性變化】
+pressure (n.) 壓力
+【搭配詞】
+ability to work under pressure 在壓力下工作的能力
+【例句】
+Job candidates are often tested on their ability to work under pressure. (求職者常被測試在壓力下工作的能力。)"
+meet deadlines,"meet deadlines (phr.) 在截止日期前完成工作
+【詞性變化】
+deadline (n.) 截止日期
+【搭配詞】
+struggle to meet deadlines 掙扎於按時交件
+【例句】
+It is essential for employees to meet deadlines consistently. (員工持之以恆地在截止日期前完成工作是至關重要的。)"
+shape one's individuality,"shape one's individuality (phr.) 塑造自己的個性 / 獨特性
+【詞性變化】
+individuality (n.) 個性
+【搭配詞】
+opportunity to shape one's individuality 塑造個人獨特性的機會
+【例句】
+Working in creative fields allows individuals to shape their individuality. (在創意領域工作能讓人們塑造自己的獨特個性。)"
+encounter obstacles,"encounter obstacles (phr.) 面對困難 / 遇到障礙
+【詞性變化】
+obstacle (n.) 障礙
+【搭配詞】
+encounter obstacles along the way 一路上遇到障礙
+【例句】
+Every entrepreneur will encounter obstacles during the business launch. (每位創業家在開創事業時都會遇到障礙。)"
+time management,"time management (n. phr.) 時間管理
+【詞性變化】
+manage (v.) 管理
+【搭配詞】
+effective time management 有效的時間管理
+【例句】
+Mastering time management can increase your daily work productivity. (掌握時間管理可以提升你的日常工作生產力。)"
+language proficiency,"language proficiency (n. phr.) 語文能力 / 語言熟練度
+【詞性變化】
+proficient (adj.) 精通的
+【搭配詞】
+demonstrate high language proficiency 展現高超的語文能力
+【例句】
+High language proficiency in English is required for this global role. (此全球職位需要具備良好的英文語文能力。)"
+leadership,"leadership (n.) 領袖才能 / 領導力
+【詞性變化】
+lead (v.) 領導；leader (n.) 領袖
+【搭配詞】
+demonstrate strong leadership 展現強大的領導力
+【例句】
+Her exceptional leadership inspired the team to achieve their targets. (她卓越的領袖才能激勵了團隊達成目標。)"
+business acumen,"business acumen (n. phr.) 商業頭腦 / 商業敏銳度
+【詞性變化】
+acumen (n.) 敏銳度
+【搭配詞】
+sharp business acumen 敏銳的商業頭腦
+【例句】
+His sharp business acumen led the company to record profits. (他敏銳的商業頭腦帶領公司創下了利潤紀錄。)"
+physical and mental well-being,"physical and mental well-being (n. phr.) 身心健康
+【詞性變化】
+well-being (n.) 健康、福祉
+【搭配詞】
+maintain physical and mental well-being 維持身心健康
+【例句】
+Companies should prioritize the physical and mental well-being of staff. (公司應優先考慮員工的身心健康。)"
+expertise,"expertise (n.) 專業知識 / 專長
+【詞性變化】
+expert (n.) 專家
+【搭配詞】
+technical expertise 技術專長
+【例句】
+We consulted external advisors for their legal expertise. (我們諮詢了外部顧問以取得他們的法律專業知識。)"
+Adversity Quotient (AQ),"Adversity Quotient (AQ) (n. phr.) 逆境商數
+【詞性變化】
+adversity (n.) 逆境
+【搭配詞】
+high Adversity Quotient 高逆境商數
+【例句】
+A high Adversity Quotient helps people overcome career setbacks. (高逆境商數有助於人們克服職業生涯中的挫折。)"
+Emotional Quotient (EQ),"Emotional Quotient (EQ) (n. phr.) 情緒商數
+【詞性變化】
+emotional (adj.) 情緒的
+【搭配詞】
+develop Emotional Quotient 培養情緒商數
+【例句】
+Managers with a high Emotional Quotient handle conflicts effectively. (具備高情緒商數的管理者能有效處理衝突。)"
+Intelligence Quotient (IQ),"Intelligence Quotient (IQ) (n. phr.) 智力商數
+【詞性變化】
+intelligent (adj.) 聰明的
+【搭配詞】
+test one's Intelligence Quotient 測試智力商數
+【例句】
+Intelligence Quotient alone does not guarantee career success. (單憑智力商數並不保證職業事業的成功。)"
+high caliber candidate,"high caliber candidate (n. phr.) 有能力的求職者 / 高素質人才
+【詞性變化】
+caliber (n.) 水準、能力
+【搭配詞】
+recruit a high caliber candidate 招聘高素質人才
+【例句】
+The recruiter is looking for a high caliber candidate with passion. (招聘人員正在尋找一位有能力且具備熱情的求職者。)"
+problem solver,"problem solver (n. phr.) 問題解決者
+【詞性變化】
+solve (v.) 解決；solution (n.) 解決方案
+【搭配詞】
+creative problem solver 具創意的問題解決者
+【例句】
+Employers value employees who are proactive problem solvers. (僱主非常重視那些主動積極的問題解決者。)"
+good command of English,"good command of English (n. phr.) 良好英語能力 / 精通英語
+【詞性變化】
+command (n.) 掌握、精通
+【搭配詞】
+have a good command of English 具備良好英語能力
+【例句】
+Applicants must have a good command of English and Cantonese. (申請者必須具備良好的英語和廣東話能力。)"
+team-player,"team-player (n.) 著重團隊合作的人
+【詞性變化】
+N/A
+【搭配詞】
+be a reliable team-player 成為可靠的團隊合作者
+【例句】
+He is not only talented but also a great team-player. (他不僅天資聰穎，也是一位極佳的團隊合作者。)"
+maintain the status quo,"maintain the status quo (phr.) 挑戰/保持/維持現狀
+【詞性變化】
+status quo (n.) 現狀
+【搭配詞】
+maintain the status quo 維持現狀
+【例句】
+Innovative entrepreneurs always seek to challenge the status quo. (具創新精神的企業家總是尋求挑戰現狀。)"
+flex one's muscles,"flex one's muscles (phr.) 大展拳腳 / 展現實力
+【詞性變化】
+muscle (n.) 肌肉
+【搭配詞】
+opportunity to flex one's muscles 大展拳腳的機會
+【例句】
+The new project gives young designers a chance to flex their muscles. (這個新專案給予年輕設計師一個大展拳腳的機會。)"
+detail-minded,"detail-minded (adj.) 注重細節的
+【詞性變化】
+mind (n.) 心思
+【搭配詞】
+be highly detail-minded 極其注重細節
+【例句】
+Proofreading financial reports requires a detail-minded auditor. (校對財務報告需要一位注重細節的審計人員。)"
+creativity (n.),"creativity (n.) 創意
+【詞性變化】
+create (v.) 創造；creative (adj.) 創意的
+【搭配詞】
+foster creativity 培養創意
+【例句】
+Creativity is vital when launching a new advertising campaign. (在推出新廣告企劃時，創意是至關重要的。)"
+innovation (n.),"innovation (n.) 創新
+【詞性變化】
+innovate (v.) 創新；innovative (adj.) 創新的
+【搭配詞】
+drive innovation 推動創新
+【例句】
+The company is recognized for its innovative product solutions. (該公司因其創新的產品解決方案而受到認可。)"
+confidence (n.),"confidence (n.) 自信
+【詞性變化】
+confide (v.) 信任、傾訴；confident (adj.) 自信的
+【搭配詞】
+build confidence 建立自信
+【例句】
+She gave a confident presentation to the board of directors. (她向董事會做了一場充滿自信的簡報發表。)"
+self-motivation (n.),"self-motivation (n.) 自我驅動力
+【詞性變化】
+motivate (v.)；激勵self-motivated (adj.) 有動力的
+【搭配詞】
+highly self-motivated 極具自我驅動力
+【例句】
+We are looking for a self-motivated individual to join our team. (我們正在尋找一位有自我驅動力的人加入團隊。)"
+result-oriented,"result-oriented (adj.) 著重結果的 / 結果導向的
+【詞性變化】
+result (n.) 結果
+【搭配詞】
+result-oriented approach 結果導向的方法
+【例句】
+A result-oriented mindset helps employees reach quarterly targets. (結果導向的心態有助於員工達成季度目標。)"
+organized,"organized (adj.) 有條理的 / 有組織能力的
+【詞性變化】
+organize (v.) 組織；organization (n.) 機構
+【搭配詞】
+well organized 有條不紊的
+【例句】
+An organized worker can manage multiple schedules effectively. (有條理的員工能夠有效管理多個日程表。)"
+strong sense of responsibility,"strong sense of responsibility (n. phr.) 有責任感 / 強烈責任心
+【詞性變化】
+responsible (adj.) 負責任的
+【搭配詞】
+possess a strong sense of responsibility 具備強烈的責任感
+【例句】
+He demonstrated a strong sense of responsibility toward the project. (他對該專案展現出了強烈的責任感。)"
+ambitious,"ambitious (adj.) 有野心的 / 抱負不凡的
+【詞性變化】
+ambition (n.) 野心
+【搭配詞】
+ambitious plan 野心勃勃的計劃
+【例句】
+The ambitious young graduate hopes to start his own firm soon. (這位有野心的年輕畢業生希望能盡快創立自己的公司。)"
+trustworthy,"trustworthy (adj.) 可靠的 / 值得信賴的
+【詞性變化】
+trust (n./v.) 信任
+【搭配詞】
+trustworthy partner 值得信賴的夥伴
+【例句】
+Financial advisors must remain transparent and trustworthy. (財務顧問必須保持透明度與值得信賴。)"
+Elitism,"Elitism (n.) 精英主義
+【詞性變化】
+elite (n./adj.) 精英
+【搭配詞】
+culture of elitism 精英主義文化
+【例句】
+Some critics argue that the policy reflects traditional elitism. (一些批評者認為該政策反映了傳統的精英主義。)"
+knowledge-based economy,"knowledge-based economy (n. phr.) 知識型經濟
+【詞性變化】
+knowledge (n.) 知識
+【搭配詞】
+transition into a knowledge-based economy 轉型為知識型經濟
+【例句】
+Hong Kong has successfully evolved into a knowledge-based economy. (香港已成功演變為一個知識型經濟體。)"
+workplace culture,"workplace culture (n. phr.) 職場文化
+【詞性變化】
+culture (n.) 文化
+【搭配詞】
+healthy workplace culture 健康的職場文化
+【例句】
+A positive workplace culture boosts employee satisfaction and retention. (積極的職場文化能提升員工滿意度與留任率。)"
+harmonious working environment,"harmonious working environment (n. phr.) 和諧工作環境
+【詞性變化】
+harmonious (adj.) 和諧的
+【搭配詞】
+foster a harmonious working environment 培養和諧工作環境
+【例句】
+Management should strive to foster a harmonious working environment. (管理層應努力培養一個和諧的工作環境。)"
+extensive duties,"extensive duties (n. phr.) 廣泛職責
+【詞性變化】
+duty (n.) 職責
+【搭配詞】
+undertake extensive duties 承擔廣泛職責
+【例句】
+The post comes with extensive duties across multiple departments. (該職位附帶橫跨多個部門的廣泛職責。)"
+manageable workload,"manageable workload (n. phr.) 可完成的工作量 / 適度工作負擔
+【詞性變化】
+manage (v.) 管理；workload (n.) 工作量
+【搭配詞】
+maintain a manageable workload 維持適度工作量
+【例句】
+Ensuring a manageable workload helps prevent staff burnout. (確保適度的工作量有助於防止員工過度倦怠。)"
+unpaid overtime work,"unpaid overtime work (n. phr.) 無償加班
+【詞性變化】
+overtime (n.) 加班
+【搭配詞】
+suffer from unpaid overtime work 受無償加班所苦
+【例句】
+Unpaid overtime work is a persistent concern in many industries. (無償加班是許多行業中一直存在的問題。)"
+flexible working hours,"flexible working hours (n. phr.) 彈性上班時間
+【詞性變化】
+flexible (adj.) 彈性的
+【搭配詞】
+offer flexible working hours 提供彈性上班時間
+【例句】
+Flexible working hours allow parents to better manage family needs. (彈性上班時間讓父母能更好地照顧家庭需求。)"
+intense competition,"intense competition (n. phr.) 激烈競爭
+【詞性變化】
+compete (v.) 競爭；competitive (adj.) 競爭的
+【搭配詞】
+face intense competition 面臨激烈競爭
+【例句】
+Job seekers face intense competition in the current market. (求職者在當前市場中面臨著激烈的競爭。)"
+ad hoc duties,"ad hoc duties (n. phr.) 臨時職責 / 特設工作
+【詞性變化】
+ad hoc (adj.) 臨時的
+【搭配詞】
+perform ad hoc duties 執行臨時職責
+【例句】
+Besides routine tasks, she is responsible for various ad hoc duties. (除了例行工作外，她還負責各項臨時職責。)"
+boost morale,"boost morale (phr.) 提升士氣
+【詞性變化】
+morale (n.) 士氣
+【搭配詞】
+strategies to boost morale 提升士氣的策略
+【例句】
+The team building retreat served to boost staff morale. (團隊建設建立營有助於提升員工士氣。)"
+peak season,"peak season (n. phr.) 高峰期 / 旺季
+【詞性變化】
+peak (n./adj.) 頂峰
+【搭配詞】
+during the peak season 在高峰期期間
+【例句】
+The hotel hired extra staff to prepare for the peak season. (該酒店聘請了額外員工以迎接旺季。)"
+hard work pays off,"hard work pays off (phr.) 努力工作有回報
+【詞性變化】
+N/A
+【搭配詞】
+believe that hard work pays off 相信努力會有回報
+【例句】
+Her success proves that hard work eventually pays off. (她的成功證明了努力工作最終會有回報。)"
+economic doldrums,"economic doldrums (n. phr.) 經濟低迷 / 景氣蕭條
+【詞性變化】
+doldrums (n.) 低迷
+【搭配詞】
+escape from economic doldrums 走出經濟低迷
+【例句】
+The retail sector suffered during the prolonged economic doldrums. (零售業在長期經濟低迷期間遭受了打擊。)"
+lay off,"lay off (phr. v.) 裁員 / 解僱
+【詞性變化】
+layoff (n.) 裁員
+【搭配詞】
+lay off redundant staff 裁減多餘員工
+【例句】
+Due to budget cuts, the firm had to lay off twenty workers. (由於預算縮減，公司不得不裁減二十名員工。)"
+buffer zone,"buffer zone (n. phr.) 緩衝區
+【詞性變化】
+buffer (n.) 緩衝
+【搭配詞】
+act as a buffer zone 充當緩衝區
+【例句】
+Emergency savings act as a financial buffer zone during crises. (緊急儲蓄在危機期間充當財務緩衝區。)"
+transnational firms,"transnational firms (n. phr.) 跨國公司
+【詞性變化】
+national (adj.) 國家的
+【搭配詞】
+operate in transnational firms 在跨國公司營運
+【例句】
+Transnational firms offer opportunities for global career development. (跨國公司為全球職業發展提供機會。)"
+professionalism,"professionalism (n.) 專業精神
+【詞性變化】
+professional (adj./n.) 專業的
+【搭配詞】
+display high professionalism 展現高度專業精神
+【例句】
+She handled the client crisis with utmost professionalism. (她以高度的專業精神處理了客戶危機。)"
+year-end bonus,"year-end bonus (n. phr.) 年尾花紅 / 年終獎金
+【詞性變化】
+bonus (n.) 獎金
+【搭配詞】
+receive a generous year-end bonus 收到豐厚的年終獎金
+【例句】
+Employees received a year-end bonus for exceeding profit goals. (員工因超額達成利潤目標而獲得了年終獎金。)"
+cut-throat competition,"cut-throat competition (n. phr.) 殘酷的競爭 / 削價競爭
+【詞性變化】
+cut-throat (adj.) 殘酷的
+【搭配詞】
+survive cut-throat competition 在殘酷競爭中生存
+【例句】
+E-commerce platforms engage in cut-throat competition for customers. (電子商務平台為爭奪客戶展開了殘酷的競爭。)"
+global recognition,"global recognition (n. phr.) 國際認可 / 全球知名度
+【詞性變化】
+recognize (v.) 認可
+【搭配詞】
+achieve global recognition 獲得國際認可
+【例句】
+The local brand earned global recognition for its sustainable design. (該本地品牌因其永續設計獲得了國際認可。)"
+work hard play hard,"work hard play hard (phr.) 努力工作、盡情玩樂
+【詞性變化】
+N/A
+【搭配詞】
+adopt a work hard play hard lifestyle 採取努力工作盡情玩樂的生活方式
+【例句】
+Many young tech workers follow the 'work hard play hard' philosophy. (許多年輕的科技從業人員奉行『努力工作、盡情玩樂』的哲學。)"
+work-life balance,"work-life balance (n. phr.) 工作與生活的平衡
+【詞性變化】
+balance (n./v.) 平衡
+【搭配詞】
+achieve a healthy work-life balance 達到健康的工生活平衡
+【例句】
+Maintaining work-life balance is vital for long-term health. (維持工作與生活的平衡對於長期健康至關重要。)"
+departmental communication,"departmental communication (n. phr.) 部門間溝通
+【詞性變化】
+department (n.) 部門
+【搭配詞】
+improve departmental communication 改善部門間溝通
+【例句】
+Clear departmental communication prevents misunderstandings in projects. (清晰的部門間溝通可防止專案中的誤解。)"
+working incentives,"working incentives (n. phr.) 工作誘因 / 獎勵機制
+【詞性變化】
+incentivize (v.) 獎勵
+【搭配詞】
+provide financial working incentives 提供財務工作誘因
+【例句】
+The company introduced performance bonuses as working incentives. (公司引入績效獎金作為工作誘因。)"
+business trips,"business trips (n. phr.) 商務旅行 / 出差
+【詞性變化】
+trip (n.) 旅程
+【搭配詞】
+go on frequent business trips 經常出差
+【例句】
+He travels to European offices regularly on business trips. (他定期前往歐洲辦事處進行商務旅行。)"
+performance review,"performance review (n. phr.) 工作表現評估 / 績效考核
+【詞性變化】
+review (n./v.) 審查
+【搭配詞】
+annual performance review 年度工作表現評估
+【例句】
+The manager conducted an annual performance review with each employee. (經理與每位員工進行了年度工作表現評估。)"
+start-up business,"start-up business (n. phr.) 初創企業
+【詞性變化】
+start up (v.) 創業
+【搭配詞】
+launch a start-up business 創立初創企業
+【例句】
+Securing funding is a major hurdle for any start-up business. (獲得資金是任何初創企業面臨的主要障礙。)"
+risk bearer,"risk bearer (n. phr.) 風險承擔人
+【詞性變化】
+bear (v.) 承擔；risk (n.) 風險
+【搭配詞】
+act as a financial risk bearer 擔任財務風險承擔人
+【例句】
+An entrepreneur is essentially the primary risk bearer of a business. (企業家本質上是企業的主要風險承擔人。)"
+mission and vision,"mission and vision (n. phr.) 使命與願景
+【詞性變化】
+visionary (adj.) 有遠見的
+【搭配詞】
+define the corporate mission and vision 定義企業使命與願景
+【例句】
+The company's mission and vision guide its strategic expansion. (公司的使命與願景引導其策略性擴展。)"
+business ethics,"business ethics (n. phr.) 商業道德
+【詞性變化】
+ethical (adj.) 道德的
+【搭配詞】
+uphold strict business ethics 恪守嚴格的商業道德
+【例句】
+Adhering to business ethics creates long-term value for investors. (恪守商業道德能為投資者創造長期價值。)"
+core values,"core values (n. phr.) 核心價值
+【詞性變化】
+core (adj.) 核心的
+【搭配詞】
+align with company core values 符合公司核心價值
+【例句】
+Integrity and innovation are among our key corporate core values. (誠信與創新是我們的關鍵企業核心價值。)"
+complaints,"complaints (n.) 投訴 / 抱怨 (complaint 的複數)
+【詞性變化】
+complain (v.) 抱怨
+【搭配詞】
+handle customer complaints 處理客戶投訴
+【例句】
+The support department addresses customer complaints promptly. (支援部門迅速處理客戶的投訴。)"
+competitive edge,"competitive edge (n. phr.) 競爭優勢
+【詞性變化】
+edge (n.) 優勢
+【搭配詞】
+maintain a competitive edge 保持競爭優勢
+【例句】
+Continuous innovation gives the brand a strong competitive edge. (持續創新賦予該品牌強大的競爭優勢。)"
+media exposure,"media exposure (n. phr.) 媒體曝光
+【詞性變化】
+expose (v.) 暴露、曝光
+【搭配詞】
+gain wide media exposure 獲得廣泛媒體曝光
+【例句】
+The product launch generated significant media exposure online. (產品發佈會線上吸引了顯著的媒體曝光。)"
+positive image,"positive image (n. phr.) 正面形象
+【詞性變化】
+image (n.) 形象
+【搭配詞】
+build a positive image 建立正面形象
+【例句】
+Charity events help companies build a positive public image. (慈善活動有助於公司建立正面的公眾形象。)"
+achieve sales target,"achieve sales target (phr.) 達到銷售目標
+【詞性變化】
+target (n.) 目標
+【搭配詞】
+struggle to achieve sales target 掙扎於達成銷售目標
+【例句】
+The team worked tirelessly to achieve their annual sales target. (團隊不懈努力以達成其年度銷售目標。)"
+profit maximization,"profit maximization (n. phr.) 利潤最大化
+【詞性變化】
+maximize (v.) 最大化
+【搭配詞】
+pursue profit maximization 追求利潤最大化
+【例句】
+Businesses aim for profit maximization while controlling operating costs. (企業旨在控制營運成本的同時追求利潤最大化。)"
+event proposal,"event proposal (n. phr.) 活動計劃書
+【詞性變化】
+propose (v.) 提議；proposal (n.) 提案
+【搭配詞】
+submit an event proposal 提交活動計劃書
+【例句】
+She drafted a comprehensive event proposal for the annual dinner. (她為年度晚宴草擬了一份詳細的活動計劃書。)"
+market trends,"market trends (n. phr.) 市場趨勢
+【詞性變化】
+trend (n.) 趨勢
+【搭配詞】
+analyze current market trends 分析當前市場趨勢
+【例句】
+Marketers must closely monitor market trends to adapt their strategy. (行銷人員必須密切監測市場趨勢以調整策略。)"
+after-sales services,"after-sales services (n. phr.) 售後服務
+【詞性變化】
+service (n.) 服務
+【搭配詞】
+reliable after-sales services 可靠的售後服務
+【例句】
+Providing excellent after-sales services enhances customer brand loyalty. (提供優良的售後服務可提升客戶對品牌的忠誠度。)"
+user-friendliness,"user-friendliness (n.) 使用友善 / 易用性
+【詞性變化】
+user-friendly (adj.) 易用的
+【搭配詞】
+improve user-friendliness 提升使用友善度
+【例句】
+The app was redesigned to enhance its overall user-friendliness. (該應用程式進行了重新設計以提升整體的使用友善度。)"
+business plan,"business plan (n. phr.) 商業計劃書
+【詞性變化】
+plan (n./v.) 計劃
+【搭配詞】
+present a business plan 展示商業計劃書
+【例句】
+Investors asked to review the detailed business plan before funding. (投資者要求在注資前審閱詳細的商業計劃書。)"
+business funding,"business funding (n. phr.) 商業資金 / 企業融資
+【詞性變化】
+fund (n./v.) 資金、資助
+【搭配詞】
+secure business funding 獲得商業資金
+【例句】
+The founders secured business funding from venture capitalists. (創辦人從風險投資者處獲得了商業資金。)"
+cost control,"cost control (n. phr.) 成本控制
+【詞性變化】
+control (v./n.) 控制
+【搭配詞】
+implement strict cost control 實施嚴格的成本控制
+【例句】
+Effective cost control is crucial during an economic downturn. (在經濟不景氣期間，有效的成本控制至關重要。)"
+bulk purchase,"bulk purchase (n. phr.) 大批量購買
+【詞性變化】
+bulk (n./adj.) 大量
+【搭配詞】
+discount for bulk purchase 大批量購買折扣
+【例句】
+The company received a discount by making a bulk purchase. (該公司透過大批量購買獲得了折扣。)"
+image building,"image building (n. phr.) 形象建立
+【詞性變化】
+build (v.) 建立
+【搭配詞】
+invest in image building 投資於形象建立
+【例句】
+Public relations plays a major role in brand image building. (公共關係在品牌形象建立中扮演重要角色。)"
+social network,"social network (n. phr.) 人際網絡 / 社群網路
+【詞性變化】
+network (n.) 網路
+【搭配詞】
+expand social network 擴展人際網絡
+【例句】
+Attending industry seminars helps expand your professional social network. (參加行業研討會有助於擴展你的專業人際網絡。)"
+marketing strategy,"marketing strategy (n. phr.) 市場策略
+【詞性變化】
+market (v./n.) 市場
+【搭配詞】
+devise an effective marketing strategy 制定有效的市場策略
+【例句】
+Their digital marketing strategy attracted thousands of new subscribers. (他們的數位市場策略吸引了數千名新訂閱者。)"
+global leading company,"global leading company (n. phr.) 全球領先企業
+【詞性變化】
+lead (v.) 領導
+【搭配詞】
+become a global leading company 成為全球領先企業
+【例句】
+Innovation transformed the tech startup into a global leading company. (創新將這家科技初創公司轉變為全球領先企業。)"
+local and overseas clients,"local and overseas clients (n. phr.) 本地及全球客戶 / 海外客戶
+【詞性變化】
+client (n.) 客戶
+【搭配詞】
+serve local and overseas clients 服務本地及海外客戶
+【例句】
+Our agency maintains strong relations with local and overseas clients. (我們機構與本地及海外客戶保持著良好的關係。)"
+target customer,"target customer (n. phr.) 目標客戶
+【詞性變化】
+target (v./n.) 目標
+【搭配詞】
+identify the target customer 識別目標客戶
+【例句】
+Understanding the target customer is the first step in product design. (了解目標客戶是產品設計的第一步。)"
+customer experience,"customer experience (n. phr.) 客戶體驗
+【詞性變化】
+experience (n./v.) 體驗
+【搭配詞】
+enhance customer experience 提升客戶體驗
+【例句】
+Improving user interface directly elevates the digital customer experience. (改善使用者介面能直接提升數位客戶體驗。)"
+discounts and deals,"discounts and deals (n. phr.) 折扣與優惠
+【詞性變化】
+discount (n.) 折扣
+【搭配詞】
+offer attractive discounts and deals 提供吸引人的折扣與優惠
+【例句】
+The store offered special discounts and deals during the holiday season. (該商店在節假日期間提供了特別的折扣與優惠。)"
+credibility,"credibility (n.) 信譽 / 可信度
+【詞性變化】
+credible (adj.) 可信的
+【搭配詞】
+establish high credibility 建立高信譽度
+【例句】
+Transparency is essential for maintaining corporate credibility. (透明度對於維持企業信譽至關重要。)"
+celebrity effect,"celebrity effect (n. phr.) 名人效應
+【詞性變化】
+celebrity (n.) 名人
+【搭配詞】
+leverage the celebrity effect 善用名人效應
+【例句】
+The brand leveraged the celebrity effect to boost holiday sales. (該品牌善用名人效應來提升節日銷售額。)"
+official website,"official website (n. phr.) 官方網頁
+【詞性變化】
+official (adj.) 官方的
+【搭配詞】
+visit the official website 造訪官方網頁
+【例句】
+Detailed product specifications can be found on our official website. (詳細的產品規格可在我們的官方網頁上找到。)"
+leaflets and brochures,"leaflets and brochures (n. phr.) 宣傳單張 / 簡介冊
+【詞性變化】
+brochure (n.) 宣傳小冊子
+【搭配詞】
+distribute leaflets and brochures 分發宣傳單張與小冊子
+【例句】
+Promotional leaflets and brochures were handed out at the exhibition. (促銷宣傳單張和小冊子已在展覽會上分發。)"
+online ratings and reviews,"online ratings and reviews (n. phr.) 網上評分和評論
+【詞性變化】
+review (n./v.) 評論
+【搭配詞】
+check online ratings and reviews 查看網上評分與評論
+【例句】
+Consumers rely heavily on online ratings and reviews before buying. (消費者在購買前高度依賴網上評分與評論。)"
+strategic planning,"strategic planning (n. phr.) 有策略的規劃 / 戰略規劃
+【詞性變化】
+strategic (adj.) 策略性的
+【搭配詞】
+engage in strategic planning 進行戰略規劃
+【例句】
+Strategic planning helps companies navigate market uncertainties. (戰略規劃幫助公司應對市場不確定性。)"
+Terms and Conditions,"Terms and Conditions (n. phr.) 條款與細則
+【詞性變化】
+condition (n.) 條件
+【搭配詞】
+agree to the Terms and Conditions 同意條款與細則
+【例句】
+Please read the Terms and Conditions carefully before signing the contract. (簽署合約前請仔細閱讀條款與細則。)"
+product endorser,"product endorser (n. phr.) 產品代言人
+【詞性變化】
+endorse (v.) 代言、背書
+【搭配詞】
+act as a product endorser 擔任產品代言人
+【例句】
+The famous athlete was appointed as the new product endorser. (這名知名運動員獲委任為新的產品代言人。)"
+job-seeker,"job-seeker (n.) 求職者
+【詞性變化】
+seek (v.) 尋找
+【搭配詞】
+experienced job-seeker 經驗豐富的求職者
+【例句】
+The recruitment fair offers resources for every active job-seeker. (招聘公平會為每一位積極的求職者提供資源。)"
+fresh graduate,"fresh graduate (n. phr.) 畢業生 / 應屆畢業生
+【詞性變化】
+graduate (n./v.) 畢業生
+【搭配詞】
+hire ambitious fresh graduates 聘請有抱負的應屆畢業生
+【例句】
+The company launched a training scheme tailored for fresh graduates. (公司推出了一項專為應屆畢業生量身打造的培訓計劃。)"
+job vacancies,"job vacancies (n. phr.) 職位空缺
+【詞性變化】
+vacant (adj.) 空缺的
+【搭配詞】
+apply for job vacancies 申請職位空缺
+【例句】
+There are several job vacancies available in the IT department. (資訊科技部門目前有數個職位空缺。)"
+employment opportunities,"employment opportunities (n. phr.) 就業機會
+【詞性變化】
+employ (v.) 僱用
+【搭配詞】
+create employment opportunities 創造就業機會
+【例句】
+The new industrial park will create thousands of employment opportunities. (新工業園區將創造數千個就業機會。)"
+annual leave,"annual leave (n. phr.) 年假
+【詞性變化】
+annual (adj.) 年度的
+【搭配詞】
+entitled to paid annual leave 享有有薪年假
+【例句】
+Full-time staff are entitled to fourteen days of paid annual leave. (全職員工享有十四天有薪年假。)"
+shortlisted candidate,"shortlisted candidate (n. phr.) 入選者 / 候選人 shortlist
+【詞性變化】
+shortlist (v.) 列入候選名單
+【搭配詞】
+interview shortlisted candidates 面試入選候選人
+【例句】
+Shortlisted candidates will be invited for a second interview next week. (入選候選人將於下週獲邀參加第二次面試。)"
+online application,"online application (n. phr.) 網上申請
+【詞性變化】
+apply (v.) 申請
+【搭配詞】
+submit an online application 提交網上申請
+【例句】
+Interested applicants should submit an online application via our portal. (有興趣的申請者應透過我們的入口網站提交網上申請。)"
+application by mail,"application by mail (n. phr.) 以郵寄/電郵申請
+【詞性變化】
+mail (n./v.) 郵件
+【搭配詞】
+accept application by mail 接受郵寄申請
+【例句】
+Application by mail must be postmarked before the deadline date. (郵寄申請必須在截止日期前蓋上郵戳。)"
+application procedure,"application procedure (n. phr.) 申請程序
+【詞性變化】
+proceed (v.) 進行
+【搭配詞】
+follow the application procedure 遵循申請程序
+【例句】
+Please read the guidelines to understand the full application procedure. (請閱讀指引以了解完整的申請程序。)"
+fixed salary,"fixed salary (n. phr.) 固定薪金
+【詞性變化】
+fix (v.) 固定
+【搭配詞】
+earn a fixed salary 賺取固定薪金
+【例句】
+Administrative assistants receive a fixed salary plus health insurance. (行政助理領取固定薪金外加健康保險。)"
+commission-based salary,"commission-based salary (n. phr.) 以佣金為本的薪金
+【詞性變化】
+commission (n.) 佣金
+【搭配詞】
+offer a commission-based salary 提供佣金制的薪金
+【例句】
+Sales representatives often work on a commission-based salary structure. (銷售代表通常採取按佣金支薪的薪資結構。)"
+resume,"resume (n.) 履歷表
+【詞性變化】
+N/A
+【搭配詞】
+submit a resume 遞交履歷表
+【例句】
+Attach your updated resume when applying for the advertised post. (申請刊登的職位時請附上您最新的履歷表。)"
+cover letter,"cover letter (n. phr.) 求職信
+【詞性變化】
+cover (v.) 涵蓋
+【搭配詞】
+attach a tailored cover letter 附上一封量身打造的求職信
+【例句】
+A persuasive cover letter highlights why you are suitable for the job. (一封有說服力的求職信能凸顯您為何適合該工作。)"
+mutual agreement,"mutual agreement (n. phr.) 共同協議 / 雙方同意
+【詞性變化】
+mutual (adj.) 相互的
+【搭配詞】
+reach a mutual agreement 達成共同協議
+【例句】
+The employment contract was terminated by mutual agreement of both parties. (僱傭合約經雙方共同協議終止。)"
+renewable contract,"renewable contract (n. phr.) 可續約合約
+【詞性變化】
+renew (v.) 續約
+【搭配詞】
+sign a renewable contract 簽署可續約合約
+【例句】
+She signed a two-year renewable contract with the research institute. (她與研究機構簽署了一份為期兩年的可續約合約。)"
+recruitment season,"recruitment season (n. phr.) 招聘季節
+【詞性變化】
+recruit (v.) 招聘
+【搭配詞】
+peak recruitment season 招聘旺季
+【例句】
+Spring is traditionally the peak recruitment season for university grads. (春季傳統上是大學畢業生的招聘旺季。)"
+recruitment agency,"recruitment agency (n. phr.) 招聘機構 / 人力中介
+【詞性變化】
+agency (n.) 機構
+【搭配詞】
+partner with a recruitment agency 與招聘機構合作
+【例句】
+The company hired a recruitment agency to fill senior executive posts. (公司聘請了一家招聘機構來填補高級管理職位。)"
+career advice,"career advice (n. phr.) 職業建議
+【詞性變化】
+advise (v.) 建議
+【搭配詞】
+seek professional career advice 尋求專業職業建議
+【例句】
+Career advisors provide valuable advice to students planning their future. (職業顧問為規劃未來的學生提供寶貴的建議。)"
+headcount,"headcount (n.) 人數 / 人力編制
+【詞性變化】
+N/A
+【搭配詞】
+increase department headcount 增加部門人力編制
+【例句】
+Due to budget constraints, the firm cannot expand its headcount. (由於預算限制，公司無法擴充人力編制。)"
+career opportunity,"career opportunity (n. phr.) 工作機會 / 職涯發展機會
+【詞性變化】
+opportunity (n.) 機會
+【搭配詞】
+explore new career opportunities 探索新的職涯機會
+【例句】
+The international expansion creates exciting career opportunities for staff. (國際擴展為員工創造了令人興奮的職涯發展機會。)"
+promotion prospects,"promotion prospects (n. phr.) 晉升機會 / 升遷前景
+【詞性變化】
+prospect (n.) 前景
+【搭配詞】
+excellent promotion prospects 極佳的升遷前景
+【例句】
+This company offers structured training and good promotion prospects. (這家公司提供結構化的培訓與良好的升遷前景。)"
+medical insurance,"medical insurance (n. phr.) 醫療保險
+【詞性變化】
+insure (v.) 保險
+【搭配詞】
+comprehensive medical insurance 綜合醫療保險
+【例句】
+The fringe benefits package includes full medical insurance coverage. (附加福利方案包含完整的醫療保險保障。)"
+convenient location,"convenient location (n. phr.) 方便位置
+【詞性變化】
+convenience (n.) 方便
+【搭配詞】
+office in a convenient location 位於方便位置的辦公室
+【例句】
+Our main office is situated in a highly convenient location near MTR. (我們的主辦公室部位於鄰近地鐵且非常方便的位置。)"
+stable income,"stable income (n. phr.) 穩定收入
+【詞性變化】
+stable (adj.) 穩定的
+【搭配詞】
+provide a stable income 提供穩定的收入
+【例句】
+A government job is widely sought after for offering a stable income. (政府工作因能提供穩定的收入而廣受青睞。)"
+economic security,"economic security (n. phr.) 財政穩健 / 經濟保障
+【詞性變化】
+secure (adj.) 安全的
+【搭配詞】
+achieve long-term economic security 實現長期財政穩健
+【例句】
+Financial planning helps families achieve long-term economic security. (財務規劃幫助家庭實現長期的經濟保障。)"
+immediate availability,"immediate availability (n. phr.) 可立即上班
+【詞性變化】
+available (adj.) 可用的
+【搭配詞】
+candidates with immediate availability 可立即上班的候選人
+【例句】
+Applicants with immediate availability are preferred for this role. (可立即上班的申請者在此職位中獲得優先考慮。)"
+job satisfaction,"job satisfaction (n. phr.) 工作滿意度
+【詞性變化】
+satisfy (v.) 使滿意
+【搭配詞】
+high level of job satisfaction 高水平的工作滿意度
+【例句】
+Recognition and good pay contribute greatly to high job satisfaction. (認同與良好的薪酬有助於提升工作滿意度。)"
+job interview,"job interview (n. phr.) 工作面試
+【詞性變化】
+interview (n./v.) 面試
+【搭配詞】
+attend a formal job interview 參加正式的工作面試
+【例句】
+Preparation is key to performing well in a competitive job interview. (充分準備是在競爭激烈的工作面試中展現佳績的關鍵。)"
+body language,"body language (n. phr.) 肢體語言
+【詞性變化】
+language (n.) 語言
+【搭配詞】
+positive body language 積極的肢體語言
+【例句】
+Maintaining eye contact is an essential component of positive body language. (保持眼神接觸是積極肢體語言的重要組成部分。)"
+gesture and posture,"gesture and posture (n. phr.) 手勢與姿勢
+【詞性變化】
+pose (v.) 擺姿勢
+【搭配詞】
+proper gesture and posture 適當的手勢與姿勢
+【例句】
+Proper gesture and posture convey confidence during an interview. (適當的手勢與姿勢能在面試中傳達自信。)"
+strengths,"strengths (n.) 強項 / 優勢 (strength 的複數)
+【詞性變化】
+strengthen (v.) 加強
+【搭配詞】
+identify core strengths 識別核心強項
+【例句】
+In interviews, candidates should articulate their key professional strengths. (在面試中，求職者應清楚表達其主要專業強項。)"
+weaknesses,"weaknesses (n.) 弱項 / 缺點 (weakness 的複數)
+【詞性變化】
+weaken (v.) 削弱；weak (adj.) 虛弱的
+【搭配詞】
+address personal weaknesses 面對個人弱項
+【例句】
+Be prepared to discuss how you work to overcome your weaknesses. (準備好討論你如何努力克服自己的弱項。)"
+official transcripts,"official transcripts (n. phr.) 成績單 / 正本成績單
+【詞性變化】
+transcript (n.) 抄本、成績單
+【搭配詞】
+submit official transcripts 遞交正本成績單
+【例句】
+Please bring your official transcripts when coming for the interview. (前來面試時請攜帶您的正本成績單。)"
+supporting documents,"supporting documents (n. phr.) 證明文件 / 附隨文件
+【詞性變化】
+document (n.) 文件
+【搭配詞】
+provide relevant supporting documents 提供相關證明文件
+【例句】
+Upload all supporting documents including certificates and references. (上傳所有證明文件，包括證書和推薦信。)"
+Aptitude Test,"Aptitude Test (n. phr.) 能力傾向測試
+【詞性變化】
+aptitude (n.) 性向、資質
+【搭配詞】
+pass the written Aptitude Test 通過筆試能力傾向測試
+【例句】
+Candidates must pass an Aptitude Test before entering the final round. (候選人必須通過能力傾向測試才能進入最後一輪。)"
+reference letter,"reference letter (n. phr.) 推薦書 / 推薦信
+【詞性變化】
+refer (v.) 推薦
+【搭配詞】
+request a reference letter 請求推薦信
+【例句】
+His former employer wrote a glowing reference letter for him. (他的前僱主為他寫了一封讚不絕口的推薦信。)"
+expected salary,"expected salary (n. phr.) 預期薪金
+【詞性變化】
+expect (v.) 期望
+【搭配詞】
+state expected salary 註明預期薪金
+【例句】
+Candidates should state their expected salary in the application form. (求職者應在申請表中註明其預期薪金。)"
+first impression,"first impression (n. phr.) 第一印象
+【詞性變化】
+impress (v.) 給…留下印象
+【搭配詞】
+make a great first impression 留下極佳的第一印象
+【例句】
+Dressing professionally helps make a positive first impression. (專業著裝有助於留下良好的第一印象。)"
+dress code,"dress code (n. phr.) 服飾要求 / 着裝規範
+【詞性變化】
+code (n.) 規範
+【搭配詞】
+follow corporate dress code 遵循企業服飾要求
+【例句】
+Employees must adhere to the formal dress code during client meetings. (員工在客戶會議期間必須遵守正式的服飾要求。)"
+equal opportunities,"equal opportunities (n. phr.) 平等機會
+【詞性變化】
+equal (adj.) 平等的
+【搭配詞】
+promote equal opportunities 推廣平等機會
+【例句】
+The firm is committed to providing equal opportunities for all candidates. (該公司致力於為所有候選人提供平等機會。)"
+Equal Opportunities Commission,"Equal Opportunities Commission (n. phr.) 平等機會委員會
+【詞性變化】
+commission (n.) 委員會
+【搭配詞】
+file a complaint with Equal Opportunities Commission 向平等機會委員會投訴
+【例句】
+The Equal Opportunities Commission promotes workplace equality. (平等機會委員會致力於推廣職場平等。)"
+Race Discrimination Ordinance,"Race Discrimination Ordinance (n. phr.) 種族歧視條例
+【詞性變化】
+ordinance (n.) 條例
+【搭配詞】
+comply with Race Discrimination Ordinance 遵守種族歧視條例
+【例句】
+Employers must strictly comply with the Race Discrimination Ordinance. (僱主必須嚴格遵守種族歧視條例。)"
+Employment Ordinance,"Employment Ordinance (n. phr.) 僱傭條例
+【詞性變化】
+ordinance (n.) 條例
+【搭配詞】
+under the Employment Ordinance 根據僱傭條例
+【例句】
+All staff rights are fully protected under the local Employment Ordinance. (所有員工權益均受到當地僱傭條例的完整保障。)"
+education sector,"education sector (n. phr.) 教育部門 / 教育界
+【詞性變化】
+sector (n.) 部門
+【搭配詞】
+reforms in the education sector 教育界的改革
+【例句】
+The government allocated more funds to upgrade the education sector. (政府撥出更多資金來升級教育界設施。)"
+tertiary education,"tertiary education (n. phr.) 大學/大專教育
+【詞性變化】
+tertiary (adj.) 第三階段的
+【搭配詞】
+pursue tertiary education 追求大專教育
+【例句】
+More high school graduates are enrolling in tertiary education. (越來越多的高中畢業生升讀大專教育。)"
+whole-person development,"whole-person development (n. phr.) 全人教育 / 全面發展
+【詞性變化】
+develop (v.) 發展
+【搭配詞】
+foster whole-person development 促進全人發展
+【例句】
+The curriculum emphasizes academics alongside whole-person development. (該課程在學術之餘亦強調全人發展。)"
+teaching materials,"teaching materials (n. phr.) 教材 / 教學輔助工具
+【詞性變化】
+material (n.) 材料
+【搭配詞】
+prepare interactive teaching materials 準備互動教材
+【例句】
+Teachers use digital teaching materials to engage students in class. (教師在課堂上使用數位教材來吸引學生學習。)"
+teaching experience,"teaching experience (n. phr.) 教學經驗
+【詞性變化】
+teach (v.) 教導
+【搭配詞】
+years of teaching experience 多年教學經驗
+【例句】
+Applicants should have at least three years of secondary teaching experience. (申請人應具有至少三年的中學教學經驗。)"
+vocational training,"vocational training (n. phr.) 職業培訓
+【詞性變化】
+vocation (n.) 職業
+【搭配詞】
+provide practical vocational training 提供實用職業培訓
+【例句】
+Vocational training arms youth with practical skills needed in industry. (職業培訓為青年裝備行業所需的實用技能。)"
+tuition fee,"tuition fee (n. phr.) 學費
+【詞性變化】
+fee (n.) 費用
+【搭配詞】
+pay university tuition fee 繳交大學學費
+【例句】
+Students can apply for financial aid to cover their tuition fee. (學生可以申請助學金來支付學費。)"
+a degree holder,"a degree holder (n. phr.) 大學/大專畢業 / 學位持有人
+【詞性變化】
+degree (n.) 學位
+【搭配詞】
+be a degree holder 具備學士學位
+【例句】
+Candidates must be a degree holder in Business Administration. (候選人必須擁有工商管理學士學位。)"
+Bachelor Degree,"Bachelor Degree (n. phr.) 學士學位
+【詞性變化】
+degree (n.) 學位
+【搭配詞】
+obtain a Bachelor Degree 取得學士學位
+【例句】
+She earned a Bachelor Degree in Computer Science last summer. (她去年夏天獲得了計算機科學學士學位。)"
+Associate Degree,"Associate Degree (n. phr.) 副學士學位
+【詞性變化】
+associate (adj./n.) 副手
+【搭配詞】
+graduate with an Associate Degree 畢業於副學士學位
+【例句】
+An Associate Degree program provides a pathway to university entry. (副學士學位課程提供了升讀大學的途徑。)"
+diploma,"diploma (n.) 文憑
+【詞性變化】
+diplomatic (adj.) 外交的
+【搭配詞】
+award a professional diploma 頒發專業文憑
+【例句】
+He completed a two-year diploma program in graphic design. (他完成了一個為期兩年的平面設計文憑課程。)"
+certificate,"certificate (n.) 證書
+【詞性變化】
+certified (adj.) 認證的
+【搭配詞】
+obtain a training certificate 取得培訓證書
+【例句】
+Upon completing the course, participants receive a certificate. (完成課程後，參加者將獲發證書。)"
+green business,"green business (n. phr.) 環保工業 / 綠色企業
+【詞性變化】
+green (adj.) 環保的
+【搭配詞】
+invest in green business 投資環保企業
+【例句】
+Green business initiatives contribute to reducing carbon emissions. (綠色企業倡議有助於減少碳排放。)"
+eco-friendly,"eco-friendly (adj.) 環保的 / 生態友善的
+【詞性變化】
+friendliness (n.) 友善
+【搭配詞】
+adopt eco-friendly practices 採用環保做法
+【例句】
+The hotel introduced eco-friendly amenities to reduce plastic waste. (酒店引入了環保設施以減少塑膠廢棄物。)"
+environmentally responsible,"environmentally responsible (adj. phr.) 對環境負責的
+【詞性變化】
+environment (n.) 環境
+【搭配詞】
+environmentally responsible company 對環境負責任的公司
+【例句】
+Consumers prefer buying from environmentally responsible brands. (消費者傾向於購買對環境負責任的品牌製品。)"
+sustainability,"sustainability (n.) 可持續性 / 永續發展
+【詞性變化】
+sustainable (adj.) 可持續的
+【搭配詞】
+promote corporate sustainability 推廣企業永續發展
+【例句】
+Environmental sustainability is now a core priority for global firms. (環境永續發展如今已成為全球企業的核心優先事項。)"
+management trainee,"management trainee (n. phr.) 管理培訓生
+【詞性變化】
+manage (v.) 管理
+【搭配詞】
+apply for management trainee program 申請管理培訓生計劃
+【例句】
+The management trainee scheme grooms future executive leaders. (管理培訓生計劃培育未來的行政領導者。)"
+return offer,"return offer (n. phr.) 正職合約（實習後）
+【詞性變化】
+offer (n./v.) 錄取、提供
+【搭配詞】
+receive a full-time return offer 獲得全職正職合約
+【例句】
+After an outstanding internship, she received a return offer. (在優秀的實習表現後，她獲得了一份正職錄取合約。)"
+job rotation,"job rotation (n. phr.) 工作部門輪換
+【詞性變化】
+rotate (v.) 輪換
+【搭配詞】
+undergo job rotation 經歷部門輪換
+【例句】
+Job rotation allows trainees to experience different company operations. (部門輪換讓培訓生體驗不同的公司營運部門。)"
+fast-track programme,"fast-track programme (n. phr.) 快速通道計劃 / 晉升速成計畫
+【詞性變化】
+fast-track (adj./v.) 快速推進
+【搭配詞】
+enroll in a fast-track programme 報名快速通道計劃
+【例句】
+High performers are invited to join the fast-track programme. (表現優異者獲邀參加此快速晉升通道計劃。)"
+young talent,"young talent (n. phr.) 青年人才
+【詞性變化】
+talent (n.) 人才
+【搭配詞】
+nurture young talent 培育青年人才
+【例句】
+The scholarship program aims to attract and nurture young talent. (該獎學金計劃旨在吸引並培育青年人才。)"
+mainland China talents,"mainland China talents (n. phr.) 內地專才 / 中國大陸人才
+【詞性變化】
+talent (n.) 人才
+【搭配詞】
+recruit mainland China talents 招聘內地專才
+【例句】
+Hong Kong launched new schemes to attract mainland China talents. (香港推出新計劃吸引內地專才。)"
+stepping stone,"stepping stone (n. phr.) 踏腳石 / 跳板
+【詞性變化】
+stone (n.) 石頭
+【搭配詞】
+use as a stepping stone 用作職涯跳板
+【例句】
+An entry-level job can serve as a stepping stone to future success. (初級工作可以用作通往未來成功的踏腳石。)"
+festival,"festival (n.) 慶典 / 節日
+【詞性變化】
+festive (adj.) 節日的
+【搭配詞】
+organize an annual music festival 舉辦年度音樂慶典
+【例句】
+The city hosts an international cultural festival every autumn. (該城市每年秋季舉辦國際文化節慶。)"
+charity,"charity (n.) 慈善 / 慈善機構
+【詞性變化】
+charitable (adj.) 慈善的
+【搭配詞】
+raise funds for charity 為慈善機構籌款
+【例句】
+Proceeds from the auction will be donated to a local charity. (拍賣收益將捐贈給本地的慈善機構。)"
+conference,"conference (n.) 會議 / 研討會
+【詞性變化】
+confer (v.) 商討
+【搭配詞】
+host an international conference 主辦國際會議
+【例句】
+Over 500 delegates attended the regional tech conference. (超過500名代表參加了該區域科技會議。)"
+performance,"performance (n.) 表演 / 績效
+【詞性變化】
+perform (v.) 表演、執行
+【搭配詞】
+live musical performance 現場音樂表演
+【例句】
+The evening concluded with a stellar dance performance. (晚會在精采絕倫的舞蹈表演中圓滿結束。)"
+theme,"theme (n.) 主題
+【詞性變化】
+thematic (adj.) 主題的
+【搭配詞】
+set a clear event theme 設定清晰的活動主題
+【例句】
+The main theme of this year's expo is technological innovation. (今年博覽會的主題是科技創新。)"
+objective,"objective (n.) 目標 / 目的
+【詞性變化】
+object (v.) 反對；objective (adj.) 客觀的
+【搭配詞】
+achieve event objectives 達成活動目標
+【例句】
+The primary objective of the workshop is to build teamwork skills. (工作坊的主要目標是建立團隊合作技巧。)"
+expected outcome,"expected outcome (n. phr.) 預期成果
+【詞性變化】
+expect (v.) 預期
+【搭配詞】
+deliver expected outcome 交付預期成果
+【例句】
+The project plan outlines the timeline and expected outcomes. (專案計劃書劃分了時間表與預期成果。)"
+event logo,"event logo (n. phr.) 活動標誌
+【詞性變化】
+logo (n.) 標誌
+【搭配詞】
+design a striking event logo 設計令人印象深刻的活動標誌
+【例句】
+The graphic designer created a memorable event logo for marketing. (平面設計師為行銷設計了一個令人印象深刻的活動標誌。)"
+advertisement,"advertisement (n.) 廣告
+【詞性變化】
+advertise (v.) 刊登廣告
+【搭配詞】
+place an advertisement 刊登廣告
+【例句】
+The company placed an advertisement in the local newspaper. (公司在當地報紙刊登了一則廣告。)"
+press conference,"press conference (n. phr.) 記者招待會 / 新聞發布會
+【詞性變化】
+press (n.) 媒體
+【搭配詞】
+hold a press conference 舉行記者招待會
+【例句】
+The CEO held a press conference to announce the new product. (執行長舉行記者招待會宣佈新產品。)"
+online advertising,"online advertising (n. phr.) 網上廣告 / 網路行銷
+【詞性變化】
+advertise (v.) 廣告
+【搭配詞】
+invest in online advertising 投資網上廣告
+【例句】
+Online advertising allows targeted reach to specific demographics. (網上廣告允許針對特定人口統計進行目標推播。)"
+manpower arrangement,"manpower arrangement (n. phr.) 人手分配 / 人力安排
+【詞性變化】
+arrange (v.) 安排
+【搭配詞】
+plan manpower arrangement 規劃人力安排
+【例句】
+Smooth manpower arrangement ensured the event ran without delay. (順暢的人力安排確保了活動無延誤地進行。)"
+speakers and presenters,"speakers and presenters (n. phr.) 講者與簡報者
+【詞性變化】
+present (v.) 簡報
+【搭配詞】
+keynote speakers and presenters 主講嘉賓與簡報者
+【例句】
+The seminar features distinguished speakers and presenters. (該研討會邀得知名講者與簡報者蒞臨。)"
+welcome speech,"welcome speech (n. phr.) 致歡迎辭
+【詞性變化】
+speech (n.) 演講
+【搭配詞】
+deliver a welcome speech 致歡迎辭
+【例句】
+The principal delivered a warm welcome speech to opening delegates. (校長向開幕嘉賓發表了熱烈的歡迎辭。)"
+food and beverage,"food and beverage (n. phr.) 食物與酒水 / 餐飲
+【詞性變化】
+beverage (n.) 飲料
+【搭配詞】
+quality food and beverage 上乘餐飲服務
+【例句】
+The hotel handles all food and beverage catering for the gala. (酒店負責盛會的所有餐飲籌備。)"
+decorations,"decorations (n.) 佈置 / 裝飾 (decoration 複數)
+【詞性變化】
+decorate (v.) 裝飾
+【搭配詞】
+event venue decorations 活動場地佈置
+【例句】
+Festive decorations transformed the hall for the annual banquet. (節日佈置將大廳裝飾一新以迎年度晚宴。)"
+media kit,"media kit (n. phr.) 媒體資訊包
+【詞性變化】
+kit (n.) 工具包
+【搭配詞】
+distribute a comprehensive media kit 分發完整的媒體資訊包
+【例句】
+Journalists received a media kit containing press releases and images. (記者們收到了包含新聞稿和圖片的媒體資訊包。)"
+rehearsal,"rehearsal (n.) 綵排
+【詞性變化】
+rehearse (v.) 綵排
+【搭配詞】
+conduct a final rehearsal 進行最後綵排
+【例句】
+The cast held a full stage rehearsal the night before opening. (劇組在開幕前晚進行了全場舞台綵排。)"
+participants,"participants (n.) 參加者 (participant 複數)
+【詞性變化】
+participate (v.) 參加
+【搭配詞】
+register participants 登記參加者
+【例句】
+Over two hundred participants joined the online interactive session. (超過兩百名參加者加入了線上互動環節。)"
+poster,"poster (n.) 海報
+【詞性變化】
+post (v.) 張貼
+【搭配詞】
+design a promotional poster 設計促銷海報
+【例句】
+Promotional posters were displayed across all school bulletin boards. (促銷海報在所有學校公告欄上展出。)"
+activity rundown,"activity rundown (n. phr.) 活動流程 / 活動流程表
+【詞性變化】
+rundown (n.) 流程摘要
+【搭配詞】
+follow the activity rundown 遵循活動流程表
+【例句】
+Check the activity rundown for detailed timing of all performances. (請查看活動流程表以了解所有表演的詳細時間。)"
+sponsorship,"sponsorship (n.) 贊助 / 贊助金
+【詞性變化】
+sponsor (v./n.) 贊助商
+【搭配詞】
+secure corporate sponsorship 獲得企業贊助
+【例句】
+The event succeeded thanks to generous corporate sponsorship. (由於慷慨的企業贊助，活動取得了成功。)"
+entry management,"entry management (n. phr.) 入場管理
+【詞性變化】
+entry (n.) 入場
+【搭配詞】
+efficient entry management 高效的入場管理
+【例句】
+QR code scanning enabled fast and secure entry management. (QR Code 掃描實現了快速且安全的入場管理。)"
+registration,"registration (n.) 登記 / 報名
+【詞性變化】
+register (v.) 登記
+【搭配詞】
+complete online registration 完成線上登記
+【例句】
+Registration opens at nine o'clock at the main entrance desk. (登記手續於九點整在主入口服務台開始。)"
+`;
+
+        // ==========================================
+        // APP 運作邏輯
+        // ==========================================
+        let fullDeck = []; 
+        let queue = [];
+        let currentCard = null;
+        let isFlipped = false;
+        
+        let totalCards = 0;       
+        let learnedCards = 0;     
+        let practiceLimit = 0;
+        
+        let stats = { hard: 0, good: 0, easy: 0 };
+        let cardHistory = {}; 
+        let isModalOpen = false;
+        
+        let sessionStartTime = 0;
+        let accumulatedTime = 0; 
+        
+        const flashcard = document.getElementById('flashcard');
+        const controlsContainer = document.getElementById('controlsContainer');
+        const showAnswerText = document.getElementById('showAnswerText');
+        const progressBar = document.getElementById('progressBar');
+        const cardCounter = document.getElementById('cardCounter');
+        
+        const infoModal = document.getElementById('infoModal');
+        const infoModalContent = document.getElementById('infoModalContent');
+        const completionModal = document.getElementById('completionModal');
+        const historyModal = document.getElementById('historyModal');
+        const historyModalContent = document.getElementById('historyModalContent');
+        const appContainer = document.getElementById('appContainer');
+        const homeScreen = document.getElementById('homeScreen');
+        const resumeBtn = document.getElementById('resumeBtn');
+
+        function speak(text) {
+            if (synth.speaking) synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+
+        function saveSession() {
+            if (queue.length === 0 && !currentCard) return;
+            const currentElapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+            
+            const state = {
+                queue: queue,
+                totalCards: totalCards,
+                learnedCards: learnedCards, 
+                stats: stats,
+                practiceLimit: practiceLimit,
+                fullDeck: fullDeck,
+                cardHistory: cardHistory,
+                accumulatedTime: accumulatedTime + currentElapsed 
+            };
+            localStorage.setItem('eng_flashcards_session', JSON.stringify(state));
+        }
+
+        function loadSession() {
+            const saved = localStorage.getItem('eng_flashcards_session');
+            if (saved) {
+                const state = JSON.parse(saved);
+                queue = state.queue;
+                totalCards = state.totalCards;
+                learnedCards = state.learnedCards || 0;
+                stats = state.stats;
+                
+                if(stats.hard === undefined) stats = { hard: 0, good: 0, easy: 0 };
+                
+                practiceLimit = state.practiceLimit;
+                fullDeck = state.fullDeck;
+                cardHistory = state.cardHistory || {};
+                
+                accumulatedTime = state.accumulatedTime || 0;
+                sessionStartTime = Date.now();
+                
+                homeScreen.style.opacity = '0';
+                setTimeout(() => {
+                    homeScreen.style.display = 'none';
+                    appContainer.classList.remove('hidden');
+                    appContainer.classList.add('flex');
+                    updateStatsUI();
+                    nextCard();
+                }, 700);
+            }
+        }
+
+        function clearSession() {
+            localStorage.removeItem('eng_flashcards_session');
+        }
+
+        function parseCSV(text) {
+            let parsed = [];
+            let row = [];
+            let inQuotes = false;
+            let currentValue = '';
+
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i+1];
+                if (char === '"' && inQuotes && nextChar === '"') {
+                    currentValue += '"'; i++; 
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    row.push(currentValue.trim());
+                    currentValue = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++; 
+                    row.push(currentValue.trim());
+                    if (row.length >= 2 || row[0] !== '') parsed.push(row);
+                    row = [];
+                    currentValue = '';
+                } else {
+                    currentValue += char;
+                }
+            }
+            if (currentValue !== '' || row.length > 0) {
+                row.push(currentValue.trim());
+                if (row.length >= 2 || row[0] !== '') parsed.push(row);
+            }
+            
+            if (parsed.length > 0) {
+                const headerTest = parsed[0][0].toLowerCase();
+                if (headerTest.includes('正面') || headerTest.includes('word') || headerTest.includes('單字')) {
+                    parsed.shift();
+                }
+                if (parsed.length > 0) fullDeck = parsed;
+            }
+        }
+
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function startGame(limit) {
+            practiceLimit = limit;
+            if (fullDeck.length === 0) return;
+            
+            startPractice();
+            
+            homeScreen.style.opacity = '0';
+            setTimeout(() => {
+                homeScreen.style.display = 'none';
+                appContainer.classList.remove('hidden');
+                appContainer.classList.add('flex');
+            }, 700);
+        }
+
+        function startPractice() {
+            let deckToUse = shuffleArray([...fullDeck]);
+            
+            if (practiceLimit > 0 && practiceLimit < deckToUse.length) {
+                deckToUse = deckToUse.slice(0, practiceLimit);
+            }
+
+            queue = [...deckToUse];
+            totalCards = queue.length; 
+            learnedCards = 0;          
+            stats = { hard: 0, good: 0, easy: 0 }; 
+            cardHistory = {};
+            
+            accumulatedTime = 0;
+            sessionStartTime = Date.now();
+            
+            updateStatsUI();
+            nextCard();
+        }
+
+function nextCard() {
+            if (queue.length === 0) {
+                showCompletion();
+                return;
+            }
+            isFlipped = false;
+            flashcard.classList.remove('rotate-y-180');
+            controlsContainer.classList.add('hidden');
+            showAnswerText.classList.remove('hidden');
+            
+            // --- 隨機設定卡面背景圖 ---
+            const cardFront = document.getElementById('cardFront');
+            if (cardFront) {
+                const isMobile = window.innerWidth < 640;
+                const randomNum = Math.floor(Math.random() * 6) + 1; 
+                const prefix = isMobile ? 'bgm' : 'bg';
+                const bgUrl = `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${prefix}${randomNum}.jpeg`;
+                cardFront.style.backgroundImage = `url('${bgUrl}')`;
+            }
+            // ---------------------------------
+            
+            currentCard = queue[0];
+            const word = currentCard[0];
+            const detailsRaw = currentCard[1] || '';
+            
+            const mode = Math.floor(Math.random() * 3);
+            const frontSpeakBtn = document.getElementById('frontSpeakBtn');
+            const cardFrontText = document.getElementById('cardFrontText');
+            
+            // 設定新的按鈕樣式：手機版在右下角，平板/電腦版垂直置中，並設定 z-50
+            const btnResponsiveStyle = "absolute top-auto bottom-20 right-2 sm:top-1/2 sm:-translate-y-1/2 sm:bottom-auto sm:right-6 p-3 text-blue-600 hover:bg-white/60 rounded-full transition-all z-50 drop-shadow-md cursor-pointer";
+            
+            if (mode === 0) {
+                cardFrontText.style.display = 'block';
+                cardFrontText.innerHTML = word;
+                frontSpeakBtn.className = btnResponsiveStyle;
+                frontSpeakBtn.innerHTML = '<i class="ph-fill ph-speaker-high text-5xl sm:text-6xl"></i>';
+            } else if (mode === 1) {
+                cardFrontText.style.display = 'block';
+                let firstLine = detailsRaw.split('\n').find(line => line.trim() !== '') || '無解釋';
+                const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                
+                // --- 移除底線，改成前後加花朵 ---
+                let hintOnly = firstLine.replace(new RegExp(escapedWord, 'gi'), '').trim();
+                let chineseHint = `🌸 ${hintOnly} 🌸`;
+                // ------------------------------------------
+                
+                cardFrontText.innerHTML = `<span class="text-3xl sm:text-4xl lg:text-5xl text-gray-700 leading-snug font-bold">${chineseHint}</span>`;
+                frontSpeakBtn.className = btnResponsiveStyle;
+                frontSpeakBtn.innerHTML = '<i class="ph-fill ph-speaker-high text-5xl sm:text-6xl"></i>';              
+            } else if (mode === 2) {
+                cardFrontText.style.display = 'none';
+                frontSpeakBtn.className = "absolute inset-0 m-auto w-32 h-32 flex items-center justify-center bg-blue-50 text-blue-500 hover:bg-blue-100 rounded-full transition-transform transform hover:scale-110 shadow-xl z-50 cursor-pointer";
+                frontSpeakBtn.innerHTML = '<i class="ph-fill ph-speaker-high text-7xl"></i>';
+                setTimeout(() => speak(word), 400);
+            }
+            
+            document.getElementById('cardBackContent').innerHTML = '';
+            updateProgress();
+            saveSession();
+        }
+
+        function renderCard() {
+            if (!currentCard) return;
+            const word = currentCard[0];
+            const detailsRaw = currentCard[1] || '';
+            const keyword = encodeURIComponent(word.trim());
+            const cardBackContent = document.getElementById('cardBackContent');
+            
+            let backHTML = `
+                <div class="flex flex-col sm:flex-row w-full h-full">
+                    <div class="w-full sm:w-1/2 h-48 sm:h-full shrink-0 bg-white/40 backdrop-blur-sm flex items-center justify-center p-2 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none border-b sm:border-b-0 sm:border-r border-pink-100/50">
+                        <img id="dynamicCardImage" 
+                             data-word="${word}"
+                             data-fallback-index="0"
+                             onerror="handleImageError(this)" 
+                             alt="${word}" 
+                             src=""
+                             class="w-full h-full object-contain aspect-[1024/559] rounded-lg shadow-sm mix-blend-multiply">
+                    </div>
+                    <div class="w-full sm:w-1/2 flex-1 flex flex-col p-4 sm:p-6 overflow-y-auto hide-scrollbar text-base sm:text-lg relative text-left">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-3 border-b border-pink-200 pb-1">${word}</h2>
+            `;
+            
+            const lines = detailsRaw.split('\n');
+            lines.forEach(line => {
+                let trimmedLine = line.trim();
+                if (!trimmedLine) return;
+                
+                if (trimmedLine.startsWith('【')) {
+                    backHTML += `<h3 class="font-bold text-gray-600 mt-3 mb-1 text-sm bg-gray-100 inline-block px-2 py-0.5 rounded">${trimmedLine}</h3>`;
+                } else if (trimmedLine.match(/^[a-zA-Z]/)) {
+                    backHTML += `<p class="text-blue-600 font-medium my-1">${trimmedLine}</p>`;
+                } else {
+                    backHTML += `<p class="text-gray-700 my-1">${trimmedLine}</p>`;
+                }
+            });
+            
+            backHTML += `</div></div>`;
+            cardBackContent.innerHTML = backHTML;
+            
+            const imgEl = document.getElementById('dynamicCardImage');
+            getImageFromDB(keyword).then(blob => {
+                if (blob) {
+                    imgEl.src = URL.createObjectURL(blob); 
+                } else {
+                    imgEl.src = `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/${keyword}.png`;
+                }
+            });
+            
+            const backSpeakBtn = document.getElementById('backSpeakBtn');
+            if (backSpeakBtn) {
+                backSpeakBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    speak(word);
+                };
+            }
+        }
+
+        function rateCard(rating) {
+            if (queue.length === 0) return;
+            const card = queue.shift();
+            const word = card[0];
+            
+            if (!cardHistory[word]) {
+                cardHistory[word] = { hardCount: 0, goodCount: 0 };
+            }
+            const history = cardHistory[word];
+            
+            if (rating === 1) { 
+                stats.hard++;
+                history.hardCount++;
+                const midIndex = Math.floor(queue.length / 2);
+                queue.splice(midIndex, 0, card);
+            } else if (rating === 2) { 
+                stats.good++;
+                learnedCards++;
+            } else if (rating === 3) { 
+                stats.easy++;
+                learnedCards++;
+            }
+            
+            updateStatsUI();
+            nextCard(); 
+        }
+
+        function updateProgress() {
+            cardCounter.textContent = `${learnedCards} / ${totalCards}`;
+            const progressPct = totalCards === 0 ? 0 : (learnedCards / totalCards) * 100;
+            progressBar.style.width = `${progressPct}%`;
+        }
+
+        function updateStatsUI() {
+            document.getElementById('countHard').textContent = stats.hard || 0;
+            document.getElementById('countGood').textContent = stats.good || 0;
+            document.getElementById('countEasy').textContent = stats.easy || 0;
+        }
+
+        function saveHistoryRecord(count, timeStr) {
+            let history = JSON.parse(localStorage.getItem('eng_flashcards_history') || '[]');
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            
+            history.unshift({ date: dateStr, count: count, time: timeStr });
+            if (history.length > 20) history = history.slice(0, 20); 
+            localStorage.setItem('eng_flashcards_history', JSON.stringify(history));
+        }
+
+        function fireConfetti() {
+            const emojis = ['🌸', '✨', '🎉', '🎊', '⭐', '🌼'];
+            for (let i = 0; i < 45; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti-piece';
+                    confetti.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's'; 
+                    confetti.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 60); 
+            }
+        }
+
+        function showCompletion() {
+            const currentElapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+            const totalSeconds = accumulatedTime + currentElapsed;
+            
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            const timeStr = `${mins}分 ${secs}秒`;
+            
+            document.getElementById('timeSpentText').textContent = timeStr;
+            saveHistoryRecord(totalCards, timeStr);
+
+            const endgameImg = document.getElementById('endgameImage');
+            getImageFromDB('ENDGAME').then(blob => {
+                if (blob) {
+                    endgameImg.src = URL.createObjectURL(blob);
+                } else {
+                    endgameImg.src = `https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/ENDGAME.jpeg?v=${Date.now()}`;
+                }
+            });
+
+            const completionModal = document.getElementById('completionModal');
+            completionModal.classList.remove('hidden');
+            completionModal.classList.add('flex');
+            
+            fireConfetti();
+            
+            progressBar.style.width = '100%';
+            cardCounter.textContent = `${totalCards} / ${totalCards}`;
+            clearSession(); 
+        }
+
+        document.getElementById('historyBtn').addEventListener('click', () => {
+            if(queue.length > 0 && currentCard) saveSession(); 
+            isModalOpen = true;
+            renderHistory();
+            historyModal.classList.remove('hidden');
+            setTimeout(() => {
+                historyModal.classList.add('opacity-100');
+                historyModalContent.classList.remove('scale-95');
+                historyModalContent.classList.add('scale-100');
+            }, 10);
+        });
+
+        function closeHistory() {
+            historyModal.classList.remove('opacity-100');
+            historyModalContent.classList.remove('scale-100');
+            historyModalContent.classList.add('scale-95');
+            setTimeout(() => {
+                historyModal.classList.add('hidden');
+                isModalOpen = false;
+            }, 200);
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('eng_flashcards_history') || '[]');
+            
+            if (history.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-400 py-6 font-medium">尚無遊玩紀錄<br><span class="text-xs">快去完成一場挑战吧！</span></div>';
+                return;
+            }
+            
+            list.innerHTML = history.map(record => `
+                <div class="bg-gray-50 hover:bg-blue-50 border border-gray-100 rounded-xl p-3 flex justify-between items-center transition-colors">
+                    <div class="text-sm font-bold text-gray-700">${record.date}</div>
+                    <div class="flex gap-2 text-xs font-bold">
+                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg border border-blue-200">💪 ${record.count} 字</span>
+                        <span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg border border-emerald-200">⏱️ ${record.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('infoBtn').addEventListener('click', () => {
+            isModalOpen = true;
+            infoModal.classList.remove('hidden');
+            setTimeout(() => {
+                infoModal.classList.add('opacity-100');
+                infoModalContent.classList.remove('scale-95');
+                infoModalContent.classList.add('scale-100');
+            }, 10);
+        });
+
+        function closeInfo() {
+            infoModal.classList.remove('opacity-100');
+            infoModalContent.classList.remove('scale-100');
+            infoModalContent.classList.add('scale-95');
+            setTimeout(() => {
+                infoModal.classList.add('hidden');
+                isModalOpen = false;
+            }, 200);
+        }
+
+        flashcard.addEventListener('click', () => {
+            if (!currentCard || isFlipped || isModalOpen) return;
+            flipCard();
+        });
+
+        document.getElementById('frontSpeakBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentCard) speak(currentCard[0]);
+        });
+
+        function flipCard() {
+            isFlipped = true;
+            flashcard.classList.add('rotate-y-180');
+            controlsContainer.classList.remove('hidden');
+            showAnswerText.classList.add('hidden');
+            renderCard(); 
+        }
+
+        function loadBackgroundImage() {
+            const homeScreen = document.getElementById('homeScreen');
+            
+            const isMobile = window.innerWidth < 640;
+
+            const desktopBgUrls = [
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE.jpg',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/title.jpg',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE.jpeg',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE.png',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE.PNG'
+            ];
+
+            const mobileBgUrls = [
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE_MOBILE.jpeg',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE_MOBILE.jpg',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/title_mobile.jpeg',
+                'https://raw.githubusercontent.com/JimmyChau1025/ENG_IMAGES/main/TITLE_MOBILE.png'
+            ];
+
+            const bgUrls = isMobile ? mobileBgUrls : desktopBgUrls;
+            
+            let currentIdx = 0;
+            function tryNext() {
+                if (currentIdx >= bgUrls.length) return; 
+                const img = new Image();
+                img.onload = () => { homeScreen.style.backgroundImage = `url('${bgUrls[currentIdx]}')`; };
+                img.onerror = () => { currentIdx++; tryNext(); };
+                img.src = bgUrls[currentIdx];
+            }
+            tryNext();
+
+            window.addEventListener('resize', () => {
+                const newIsMobile = window.innerWidth < 640;
+                if (isMobile !== newIsMobile) {
+                   location.reload(); 
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            loadBackgroundImage();
+            
+            if (typeof builtInCSV !== 'undefined' && builtInCSV.trim() !== '') {
+                parseCSV(builtInCSV);
+            }
+            
+            if (localStorage.getItem('eng_flashcards_session')) {
+                resumeBtn.classList.remove('hidden');
+            }
+
+            await initDB();
+            setTimeout(() => {
+                downloadAllImagesSilently();
+            }, 2000);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (isModalOpen) {
+                if (e.code === 'Escape') {
+                    closeInfo();
+                    closeHistory();
+                }
+                return;
+            }
+            if (queue.length === 0) return;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isFlipped) flipCard();
+            } else if (e.code === 'Enter') {
+                e.preventDefault();
+                if (!isFlipped) {
+                    document.getElementById('frontSpeakBtn').click();
+                } else {
+                    const backBtn = document.getElementById('backSpeakBtn');
+                    if (backBtn) backBtn.click();
+                }
+            } else if (isFlipped) {
+                if (e.key === '1') rateCard(1);
+                else if (e.key === '2') rateCard(2);
+                else if (e.key === '3') rateCard(3);
+            }
+        });
+    </script>
+</body>
+</html>
